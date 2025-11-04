@@ -135,16 +135,6 @@ public class LobbyController {
             onShowLeaderboard.accept(null);
         }
     }
-
-    @FXML
-    private void handleToggleStatus() {
-        System.out.println("Toggle status clicked");
-        myStatus = "Rảnh".equals(myStatus) ? "Bận" : "Rảnh";
-        updateHeaderUserInfo();
-        showStyledAlert("Trạng thái đã thay đổi", 
-            "Trạng thái hiện tại: " + myStatus, 
-            Alert.AlertType.INFORMATION);
-    }
     
     private void showStyledAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type, message);

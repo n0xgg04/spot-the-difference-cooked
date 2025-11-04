@@ -191,21 +191,6 @@
                                           -fx-font-weight: bold; 
                                           -fx-text-fill: white;"/>
                         </VBox>
-                        
-                        <!-- Toggle Status Button -->
-                        <VBox spacing="5" alignment="CENTER"
-                              style="-fx-background-color: linear-gradient(to bottom, #16a085, #1abc9c); 
-                                     -fx-background-radius: 15px; 
-                                     -fx-padding: 15px 20px;
-                                     -fx-cursor: hand;
-                                     -fx-effect: dropshadow(gaussian, rgba(22,160,133,0.7), 15, 0.7, 0, 5);"
-                              onMouseClicked="#handleToggleStatus">
-                            <Label text="🔄" style="-fx-font-size: 32px;"/>
-                            <Label text="Đổi Trạng Thái"
-                                   style="-fx-font-size: 13px; 
-                                          -fx-font-weight: bold; 
-                                          -fx-text-fill: white;"/>
-                        </VBox>
                     </HBox>
                 </VBox>
             </HBox>
