@@ -9,10 +9,10 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
@@ -24,10 +24,11 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class GameView {
-    private final BorderPane root = new BorderPane();
+    private final StackPane root = new StackPane();
     private final Canvas canvas = new Canvas(900, 450);
-    private final Label scoreLabel = new Label("Điểm số");
-    private final Label timerLabel = new Label("⏱ 15s");
+    private final Label scoreLabel = new Label("Score: 0");
+    private final Label timerLabel = new Label("⏱ 15");
+    private final Label roundLabel = new Label("Round: 1");
     private final Label turnLabel = new Label("Lượt của bạn");
     
     private AudioService audioService;
@@ -47,7 +48,7 @@ public class GameView {
     private Image rightImg;
     private int imgW = 300;
     private int imgH = 300;
-    private final double boxX1 = 50, boxY = 80, boxX2 = 500, boxSize = 350;
+    private final double boxX1 = 50, boxY = 100, boxX2 = 500, boxSize = 350;
 
     public GameView(BiConsumer<Double, Double> onClick, String myUsername, AudioService audioService) {
         this.myUsername = myUsername;
@@ -58,82 +59,42 @@ public class GameView {
             audioService.loadGameSounds();
         }
         
-        root.setStyle(
-            "-fx-background-color: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);"
-        );
+        ImageView bgImageView = new ImageView();
+        try {
+            Image bgImage = new Image(getClass().getResourceAsStream("/images/v2/forest-8227410.jpg"));
+            bgImageView.setImage(bgImage);
+            bgImageView.setPreserveRatio(false);
+            bgImageView.setFitWidth(1280);
+            bgImageView.setFitHeight(720);
+        } catch (Exception e) {
+            System.err.println("Could not load background image: " + e.getMessage());
+        }
         
-        VBox topPanel = new VBox(8);
-        topPanel.setPadding(new Insets(20, 25, 15, 25));
-        topPanel.setAlignment(Pos.CENTER);
-        topPanel.setStyle(
-            "-fx-background-color: rgba(255, 255, 255, 0.12);" +
-            "-fx-background-radius: 15px;" +
-            "-fx-border-color: rgba(255, 255, 255, 0.2);" +
-            "-fx-border-width: 1px;" +
-            "-fx-border-radius: 15px;" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0.6, 0, 3);"
-        );
+        Pane overlay = new Pane();
+        overlay.setStyle("-fx-background-color: rgba(20,20,40,0.65);");
+        overlay.setPrefSize(1280, 720);
         
-        Label titleLabel = new Label("🎯 TÌM ĐIỂM KHÁC BIỆT");
-        titleLabel.setStyle(
-            "-fx-font-size: 26px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: linear-gradient(to right, #a8edea, #fed6e3);" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 4, 0.6, 0, 2);"
-        );
+        BorderPane mainLayout = new BorderPane();
+        mainLayout.setStyle("-fx-background-color: transparent;");
         
-        scoreLabel.setStyle(
-            "-fx-font-size: 17px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: #ffeaa7;" +
-            "-fx-effect: dropshadow(gaussian, rgba(255,234,167,0.5), 3, 0.6, 0, 1);"
-        );
+        HBox topBar = createTopBar();
+        mainLayout.setTop(topBar);
         
-        topPanel.getChildren().addAll(titleLabel, scoreLabel);
-        
-        VBox centerContainer = new VBox();
+        VBox centerContainer = new VBox(10);
         centerContainer.setAlignment(Pos.CENTER);
-        centerContainer.setPadding(new Insets(15));
-        centerContainer.getChildren().add(canvas);
-        
-        HBox bottomPanel = new HBox(40);
-        bottomPanel.setPadding(new Insets(15, 25, 20, 25));
-        bottomPanel.setAlignment(Pos.CENTER);
-        bottomPanel.setStyle(
-            "-fx-background-color: rgba(255, 255, 255, 0.12);" +
-            "-fx-background-radius: 15px;" +
-            "-fx-border-color: rgba(255, 255, 255, 0.2);" +
-            "-fx-border-width: 1px;" +
-            "-fx-border-radius: 15px;" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0.6, 0, 3);"
-        );
+        centerContainer.setPadding(new Insets(10, 15, 10, 15));
+        centerContainer.getChildren().addAll(canvas, turnLabel);
         
         turnLabel.setStyle(
-            "-fx-font-size: 19px;" +
+            "-fx-font-size: 18px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: white;" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 3, 0.6, 0, 2);"
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 4, 0.7, 0, 2);"
         );
         
-        timerLabel.setStyle(
-            "-fx-font-size: 22px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: #fff;" +
-            "-fx-padding: 8px 20px;" +
-            "-fx-background-color: rgba(255, 107, 107, 0.25);" +
-            "-fx-background-radius: 25px;" +
-            "-fx-border-color: rgba(255, 107, 107, 0.5);" +
-            "-fx-border-width: 2px;" +
-            "-fx-border-radius: 25px;" +
-            "-fx-effect: dropshadow(gaussian, rgba(255,107,107,0.6), 5, 0.7, 0, 2);"
-        );
+        mainLayout.setCenter(centerContainer);
         
-        bottomPanel.getChildren().addAll(turnLabel, timerLabel);
-        
-        root.setTop(topPanel);
-        root.setCenter(centerContainer);
-        root.setBottom(bottomPanel);
-        root.setPadding(new Insets(10));
+        root.getChildren().addAll(bgImageView, overlay, mainLayout);
         
         countdownTimer = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             if (remainingSeconds > 0) {
@@ -172,40 +133,128 @@ public class GameView {
             }
         });
     }
+    
+    private HBox createTopBar() {
+        HBox topBar = new HBox(20);
+        topBar.setAlignment(Pos.CENTER);
+        topBar.setPadding(new Insets(15, 20, 15, 20));
+        
+        VBox roundBox = new VBox(5);
+        roundBox.setAlignment(Pos.CENTER);
+        roundBox.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #667eea, #764ba2);" +
+            "-fx-background-radius: 20px;" +
+            "-fx-padding: 12px 25px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0.7, 0, 4);"
+        );
+        
+        Label roundTitle = new Label("Round: 1");
+        roundTitle.setStyle(
+            "-fx-font-size: 22px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: white;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 3, 0.7, 0, 2);"
+        );
+        roundBox.getChildren().add(roundTitle);
+        
+        VBox scoreBox = new VBox(5);
+        scoreBox.setAlignment(Pos.CENTER);
+        scoreBox.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #4facfe, #00f2fe);" +
+            "-fx-background-radius: 20px;" +
+            "-fx-padding: 12px 30px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0.7, 0, 4);"
+        );
+        
+        Label scoreIcon = new Label("🎯");
+        scoreIcon.setStyle("-fx-font-size: 28px;");
+        
+        scoreLabel.setStyle(
+            "-fx-font-size: 20px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: white;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 3, 0.7, 0, 2);"
+        );
+        
+        HBox scoreContent = new HBox(8);
+        scoreContent.setAlignment(Pos.CENTER);
+        scoreContent.getChildren().addAll(scoreIcon, scoreLabel);
+        scoreBox.getChildren().add(scoreContent);
+        
+        VBox timerBox = new VBox(5);
+        timerBox.setAlignment(Pos.CENTER);
+        timerBox.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #fa709a, #fee140);" +
+            "-fx-background-radius: 20px;" +
+            "-fx-padding: 12px 25px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0.7, 0, 4);"
+        );
+        
+        timerLabel.setStyle(
+            "-fx-font-size: 22px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: white;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 3, 0.7, 0, 2);"
+        );
+        timerBox.getChildren().add(timerLabel);
+        
+        Region spacer1 = new Region();
+        Region spacer2 = new Region();
+        HBox.setHgrow(spacer1, Priority.ALWAYS);
+        HBox.setHgrow(spacer2, Priority.ALWAYS);
+        
+        topBar.getChildren().addAll(spacer1, roundBox, scoreBox, timerBox, spacer2);
+        
+        return topBar;
+    }
 
     private void drawBase() {
         GraphicsContext g = canvas.getGraphicsContext2D();
         
-        g.setFill(Color.WHITE);
+        g.setFill(Color.TRANSPARENT);
         g.fillRect(0, 0, 900, 450);
         
-        g.setFill(Color.web("#e0e0e0"));
-        g.fillRect(boxX1 - 5, boxY - 5, boxSize + 10, boxSize + 10);
-        g.fillRect(boxX2 - 5, boxY - 5, boxSize + 10, boxSize + 10);
+        g.setFill(Color.WHITE);
+        g.fillRoundRect(boxX1 - 10, boxY - 10, boxSize + 20, boxSize + 20, 25, 25);
+        g.fillRoundRect(boxX2 - 10, boxY - 10, boxSize + 20, boxSize + 20, 25, 25);
         
         if (leftImg != null) {
+            g.save();
+            Rectangle clip1 = new Rectangle(boxX1, boxY, boxSize, boxSize);
+            clip1.setArcWidth(15);
+            clip1.setArcHeight(15);
+            g.beginPath();
+            g.rect(boxX1, boxY, boxSize, boxSize);
+            g.closePath();
+            g.clip();
             g.drawImage(leftImg, boxX1, boxY, boxSize, boxSize);
+            g.restore();
         } else { 
-            g.setFill(Color.web("#f5f5f5")); 
-            g.fillRect(boxX1, boxY, boxSize, boxSize);
+            g.setFill(Color.web("#e8e8e8")); 
+            g.fillRoundRect(boxX1, boxY, boxSize, boxSize, 15, 15);
         }
+        
         if (rightImg != null) {
+            g.save();
+            Rectangle clip2 = new Rectangle(boxX2, boxY, boxSize, boxSize);
+            clip2.setArcWidth(15);
+            clip2.setArcHeight(15);
+            g.beginPath();
+            g.rect(boxX2, boxY, boxSize, boxSize);
+            g.closePath();
+            g.clip();
             g.drawImage(rightImg, boxX2, boxY, boxSize, boxSize);
+            g.restore();
         } else { 
-            g.setFill(Color.web("#f5f5f5")); 
-            g.fillRect(boxX2, boxY, boxSize, boxSize);
+            g.setFill(Color.web("#e8e8e8")); 
+            g.fillRoundRect(boxX2, boxY, boxSize, boxSize, 15, 15);
         }
         
-        g.setStroke(Color.web("#333333"));
-        g.setLineWidth(3);
-        g.strokeRect(boxX1, boxY, boxSize, boxSize);
-        g.strokeRect(boxX2, boxY, boxSize, boxSize);
+        g.setStroke(Color.WHITE);
+        g.setLineWidth(8);
+        g.strokeRoundRect(boxX1 - 5, boxY - 5, boxSize + 10, boxSize + 10, 20, 20);
+        g.strokeRoundRect(boxX2 - 5, boxY - 5, boxSize + 10, boxSize + 10, 20, 20);
         g.setLineWidth(1);
-        
-        g.setFill(Color.web("#333333"));
-        g.setFont(Font.font("System", FontWeight.BOLD, 18));
-        g.fillText("ẢNH GỐC", boxX1 + boxSize/2 - 35, boxY - 12);
-        g.fillText("ẢNH SAI KHÁC", boxX2 + boxSize/2 - 55, boxY - 12);
     }
 
     public void updateFromPayload(Map<?,?> p) {
@@ -287,45 +336,17 @@ public class GameView {
                 "-fx-text-fill: #00ff88;" +
                 "-fx-effect: dropshadow(gaussian, rgba(0,255,136,0.8), 6, 0.8, 0, 0);"
             );
-            
-            String timerColor = remainingSeconds <= 5 ? "#ff3838" : "#ffeaa7";
-            String glowColor = remainingSeconds <= 5 ? "rgba(255,56,56,0.7)" : "rgba(255,234,167,0.5)";
-            
-            timerLabel.setStyle(
-                "-fx-font-size: 24px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-text-fill: " + timerColor + ";" +
-                "-fx-padding: 10px 22px;" +
-                "-fx-background-color: rgba(255, 255, 255, 0.15);" +
-                "-fx-background-radius: 30px;" +
-                "-fx-border-color: " + timerColor + ";" +
-                "-fx-border-width: 2px;" +
-                "-fx-border-radius: 30px;" +
-                "-fx-effect: dropshadow(gaussian, " + glowColor + ", 8, 0.8, 0, 2);"
-            );
         } else {
             turnLabel.setText("⏳ Đợi đối thủ...");
             turnLabel.setStyle(
-                "-fx-font-size: 19px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-text-fill: #95a5a6;" +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 3, 0.6, 0, 2);"
-            );
-            timerLabel.setStyle(
-                "-fx-font-size: 22px;" +
+                "-fx-font-size: 18px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: #bdc3c7;" +
-                "-fx-padding: 8px 20px;" +
-                "-fx-background-color: rgba(255, 255, 255, 0.08);" +
-                "-fx-background-radius: 25px;" +
-                "-fx-border-color: rgba(189, 195, 199, 0.3);" +
-                "-fx-border-width: 2px;" +
-                "-fx-border-radius: 25px;" +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 4, 0.5, 0, 1);"
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 4, 0.7, 0, 2);"
             );
         }
         
-        timerLabel.setText(String.format("⏱ %ds", remainingSeconds));
+        timerLabel.setText(String.format("⏱ %d", remainingSeconds));
     }
 
     private void render() {
@@ -382,21 +403,21 @@ public class GameView {
         
         String myScore = "", opponentScore = "";
         if (playerA.equals(myUsername)) {
-            myScore = playerA + ": " + scoreA;
-            opponentScore = playerB + ": " + scoreB;
+            myScore = String.valueOf(scoreA);
+            opponentScore = String.valueOf(scoreB);
         } else if (playerB.equals(myUsername)) {
-            myScore = playerB + ": " + scoreB;
-            opponentScore = playerA + ": " + scoreA;
+            myScore = String.valueOf(scoreB);
+            opponentScore = String.valueOf(scoreA);
         } else {
-            myScore = "Bạn: ?";
-            opponentScore = "Đối thủ: ?";
+            myScore = "0";
+            opponentScore = "0";
         }
         
-        String scoreText = String.format("👤 %s  |  🎯 %s", myScore, opponentScore);
+        String scoreText = String.format("%s/%d", myScore, found.size() + 3);
         scoreLabel.setText(scoreText);
     }
 
-    public BorderPane getRoot() { 
+    public StackPane getRoot() { 
         return root; 
     }
 
@@ -417,4 +438,3 @@ public class GameView {
         render();
     }
 }
-
