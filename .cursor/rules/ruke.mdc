@@ -1,0 +1,51 @@
+---
+alwaysApply: true
+language: java
+---
+
+style:
+indentSize: 4
+tabWidth: 4
+useTabs: false
+trimTrailingWhitespace: true
+insertFinalNewline: true
+endOfLine: lf
+maxLineLength: 120
+
+naming:
+classes: PascalCase
+methods: camelCase
+variables: camelCase
+constants: UPPER_SNAKE_CASE
+packages: lower.snake.case
+
+imports:
+order: - java._ - javax._ - org._ - com._
+removeUnused: true
+wildcardImportLimit: 5
+
+braces:
+placement: endOfLine
+requireBraces: always
+
+whitespace:
+aroundOperators: true
+afterCommas: true
+beforeBraces: true
+afterKeywords: true
+
+annotations:
+position: sameLine
+order: - Override - Deprecated - SuppressWarnings
+
+javadoc:
+required: false
+enforceTags: false
+
+forbidden:
+
+- System.out.println
+- System.err.println
+- printStackTrace
+- TODO
+- FIXME

@@ -51,20 +51,29 @@ public class LobbyController {
     
     @FXML
     private BorderPane rootPane;
+    
+    @FXML
+    private Button muteButton;
 
     private ObservableList<LobbyUserRow> lobbyData = FXCollections.observableArrayList();
     private FilteredList<LobbyUserRow> filteredLobby;
     
     private NetworkClient networkClient;
+    private com.ltm.game.client.services.AudioService audioService;
     private String username;
     private String myPoints = "0";
     private String myStatus = "Rảnh";
+    private boolean isMuted = false;
     
     private Consumer<Void> onLogout;
     private Consumer<Void> onShowLeaderboard;
 
     public void setNetworkClient(NetworkClient client) {
         this.networkClient = client;
+    }
+    
+    public void setAudioService(com.ltm.game.client.services.AudioService audioService) {
+        this.audioService = audioService;
     }
 
     public void setUsername(String username) {
@@ -159,6 +168,22 @@ public class LobbyController {
     private void handleToggleStatus() {
         myStatus = "Rảnh".equals(myStatus) ? "Bận" : "Rảnh";
         updateHeaderUserInfo();
+    }
+    
+    @FXML
+    private void handleToggleMute() {
+        if (audioService != null) {
+            isMuted = !isMuted;
+            audioService.setMuted(isMuted);
+            
+            if (isMuted) {
+                muteButton.setText("🔇 Bật âm thanh");
+                muteButton.setStyle("-fx-font-size: 14px; -fx-padding: 10px 20px; -fx-background-color: #95a5a6; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: bold;");
+            } else {
+                muteButton.setText("🔊 Tắt âm thanh");
+                muteButton.setStyle("-fx-font-size: 14px; -fx-padding: 10px 20px; -fx-background-color: #34495e; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: bold;");
+            }
+        }
     }
 
     public void updateLobbyList(List<Map<String, Object>> list) {

@@ -97,6 +97,14 @@
                     onAction="#handleToggleStatus"
                     minWidth="200"
                     style="-fx-font-size: 14px; -fx-padding: 10px 20px; -fx-background-color: #16a085; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: bold;"/>
+            
+            <Region VBox.vgrow="ALWAYS"/>
+            
+            <Button fx:id="muteButton"
+                    text="🔊 Tắt âm thanh"
+                    onAction="#handleToggleMute"
+                    minWidth="200"
+                    style="-fx-font-size: 14px; -fx-padding: 10px 20px; -fx-background-color: #34495e; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: bold;"/>
         </VBox>
     </right>
 </BorderPane>

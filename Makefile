@@ -13,12 +13,16 @@ help:
 	@echo "║  make db-stop       - Stop MySQL database                     ║"
 	@echo "║  make server        - Run game server                         ║"
 	@echo "║  make client        - Run game client                         ║"
+	@echo "║  make client1       - Run client instance 1                   ║"
+	@echo "║  make client2       - Run client instance 2                   ║"
+	@echo "║  make clients       - Run 2 clients (for testing)             ║"
 	@echo "║  make admin         - Run admin uploader                      ║"
 	@echo "║  make all           - Start DB + Server + Client              ║"
 	@echo "║  make run           - Same as 'make all'                      ║"
 	@echo "║  make stop          - Stop all running services               ║"
 	@echo "║  make logs          - Show docker-compose logs                ║"
 	@echo "║  make dev           - Development mode (DB + Server)          ║"
+	@echo "║  make status        - Check service status                    ║"
 	@echo "╚════════════════════════════════════════════════════════════════╝"
 
 build:
@@ -51,6 +55,29 @@ server: build
 client: build
 	@echo "🎮 Starting game client..."
 	@cd client && $(MAVEN) javafx:run
+
+client1:
+	@echo "🎮 Starting Client 1..."
+	@cd client && $(MAVEN) javafx:run > /tmp/client1.log 2>&1 &
+	@sleep 2
+	@echo "✅ Client 1 started!"
+
+client2:
+	@echo "🎮 Starting Client 2..."
+	@cd client && $(MAVEN) javafx:run > /tmp/client2.log 2>&1 &
+	@sleep 2
+	@echo "✅ Client 2 started!"
+
+clients: client1
+	@echo "⏳ Waiting for Client 1 to initialize..."
+	@sleep 5
+	@$(MAKE) client2
+	@sleep 3
+	@echo ""
+	@echo "🎮 Both clients are running!"
+	@echo "📝 Logs:"
+	@echo "   Client 1: /tmp/client1.log"
+	@echo "   Client 2: /tmp/client2.log"
 
 admin: build
 	@echo "⚙️  Starting admin uploader..."

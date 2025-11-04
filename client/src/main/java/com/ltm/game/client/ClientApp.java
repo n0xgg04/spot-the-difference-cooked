@@ -57,12 +57,53 @@ public class ClientApp extends Application {
         stage.show();
     }
 
+    private void handleLogout() {
+        System.out.println("[LOGOUT] Started");
+        
+        try {
+            System.out.println("[LOGOUT] Resetting state...");
+            this.username = null;
+            this.totalPoints = 0;
+            this.currentRoomId = null;
+            this.pendingLobbyList = null;
+            
+            final NetworkClient oldClient = this.networkClient;
+            this.networkClient = new NetworkClient(this::onMessage);
+            
+            System.out.println("[LOGOUT] Starting background disconnect thread...");
+            new Thread(() -> {
+                try {
+                    if (oldClient != null) {
+                        oldClient.disconnect();
+                        System.out.println("[LOGOUT] Old client disconnected");
+                    }
+                    Thread.sleep(300);
+                    networkClient.connect();
+                    System.out.println("[LOGOUT] New client connected");
+                } catch (Exception e) {
+                    System.err.println("[LOGOUT] Error in background: " + e.getMessage());
+                }
+            }, "logout-thread").start();
+            
+            System.out.println("[LOGOUT] Calling showLogin()...");
+            showLogin();
+            System.out.println("[LOGOUT] Completed");
+        } catch (Exception e) {
+            System.err.println("[LOGOUT] Exception: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
     private void showLogin() {
         try {
+            System.out.println("[showLogin] Starting...");
             audioService.stopAll();
+            System.out.println("[showLogin] Audio stopped");
             
+            System.out.println("[showLogin] Loading FXML...");
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
             Scene scene = new Scene(loader.load());
+            System.out.println("[showLogin] FXML loaded");
             
             loginController = loader.getController();
             loginController.setNetworkClient(networkClient);
@@ -71,10 +112,12 @@ public class ClientApp extends Application {
                 this.totalPoints = points;
                 showLobby();
             });
+            System.out.println("[showLogin] Controller configured");
             
             stage.setScene(scene);
+            System.out.println("[showLogin] Scene set - Login screen displayed");
         } catch (Exception e) {
-            System.err.println("Error loading login view: " + e.getMessage());
+            System.err.println("[showLogin] ERROR: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -82,23 +125,19 @@ public class ClientApp extends Application {
     private void showLobby() {
         try {
             audioService.stopGameMusic();
-            audioService.playBackgroundMusic();
+            // audioService.playBackgroundMusic(); // Tắt nhạc sảnh
             
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/lobby.fxml"));
             Scene scene = new Scene(loader.load());
             
             lobbyController = loader.getController();
             lobbyController.setNetworkClient(networkClient);
+            lobbyController.setAudioService(audioService);
             lobbyController.setUsername(username);
             lobbyController.setTotalPoints(totalPoints);
             
             lobbyController.setOnLogout(v -> {
-                try {
-                    networkClient.disconnect();
-                } catch (Exception ignored) {}
-                this.networkClient = new NetworkClient(this::onMessage);
-                networkClient.connect();
-                showLogin();
+                handleLogout();
             });
             
             lobbyController.setOnShowLeaderboard(v -> showLeaderboard());

@@ -7,6 +7,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.animation.ScaleTransition;
+import javafx.util.Duration;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -34,6 +36,23 @@ public class LoginController {
         if (passwordField != null) {
             passwordField.setOnAction(e -> handleLogin());
         }
+        
+        addFocusAnimation(usernameField);
+        addFocusAnimation(passwordField);
+    }
+    
+    private void addFocusAnimation(javafx.scene.Node node) {
+        node.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(150), node);
+            if (isNowFocused) {
+                st.setToX(1.02);
+                st.setToY(1.02);
+            } else {
+                st.setToX(1.0);
+                st.setToY(1.0);
+            }
+            st.play();
+        });
     }
 
     @FXML
