@@ -234,6 +234,12 @@ public class ClientApp extends Application {
                         lobbyController.showInviteRejected();
                     }
                 }
+                case Protocol.QUEUE_MATCHED -> {
+                    String opponent = String.valueOf(((Map<?, ?>) msg.payload).get("opponent"));
+                    if (lobbyController != null) {
+                        lobbyController.onQueueMatched(opponent);
+                    }
+                }
                 case Protocol.GAME_START -> {
                     Map<?, ?> p = (Map<?, ?>) msg.payload;
                     currentRoomId = String.valueOf(p.get("roomId"));

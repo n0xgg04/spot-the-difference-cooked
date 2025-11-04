@@ -23,12 +23,14 @@ public class ClientHandler implements Runnable {
     private final Socket socket;
     private final LobbyService lobby;
     private final GameService gameService;
+    private final QueueService queueService;
     private final ClientSession session;
 
-    public ClientHandler(Socket socket, LobbyService lobby, GameService gameService) throws Exception {
+    public ClientHandler(Socket socket, LobbyService lobby, GameService gameService, QueueService queueService) throws Exception {
         this.socket = socket;
         this.lobby = lobby;
         this.gameService = gameService;
+        this.queueService = queueService;
         this.session = new ClientSession(socket);
     }
 
@@ -55,10 +57,34 @@ public class ClientHandler implements Runnable {
             case Protocol.AUTH_LOGIN -> onLogin(msg);
             case Protocol.INVITE_SEND -> lobby.onInviteSend(session, (Map<?,?>) msg.payload);
             case Protocol.INVITE_RESPONSE -> gameService.onInviteResponse(session, (Map<?,?>) msg.payload);
+            case Protocol.QUEUE_JOIN -> onQueueJoin();
+            case Protocol.QUEUE_LEAVE -> onQueueLeave();
+            case Protocol.QUEUE_STATUS -> onQueueStatus();
             case Protocol.GAME_CLICK -> gameService.onGameClick(session, (Map<?,?>) msg.payload);
             case Protocol.GAME_QUIT -> gameService.onGameQuit(session, (Map<?,?>) msg.payload);
             case Protocol.LEADERBOARD -> onLeaderboard();
             default -> {}
+        }
+    }
+
+    private void onQueueJoin() {
+        if (session.username != null) {
+            queueService.joinQueue(session.username);
+            session.send(new Message(Protocol.QUEUE_STATUS, Map.of("inQueue", true, "waitSeconds", 0)).toJson());
+        }
+    }
+
+    private void onQueueLeave() {
+        if (session.username != null) {
+            queueService.leaveQueue(session.username);
+            session.send(new Message(Protocol.QUEUE_STATUS, Map.of("inQueue", false)).toJson());
+        }
+    }
+
+    private void onQueueStatus() {
+        if (session.username != null) {
+            Map<String, Object> status = queueService.getQueueStatus(session.username);
+            session.send(new Message(Protocol.QUEUE_STATUS, status).toJson());
         }
     }
 

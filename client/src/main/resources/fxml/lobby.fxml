@@ -162,16 +162,16 @@
                 <VBox spacing="15" alignment="BOTTOM_RIGHT">
                     <!-- Main Action Buttons -->
                     <HBox spacing="15" alignment="CENTER_RIGHT">
-                        <!-- Random Invite Button -->
+                        <!-- Find Match Button -->
                         <VBox spacing="5" alignment="CENTER"
-                              style="-fx-background-color: linear-gradient(to bottom, #9b59b6, #8e44ad); 
+                              style="-fx-background-color: linear-gradient(to bottom, #e74c3c, #c0392b); 
                                      -fx-background-radius: 15px; 
                                      -fx-padding: 15px 20px;
                                      -fx-cursor: hand;
-                                     -fx-effect: dropshadow(gaussian, rgba(155,89,182,0.7), 15, 0.7, 0, 5);"
-                              onMouseClicked="#handleRandomInvite">
-                            <Label text="🎲" style="-fx-font-size: 32px;"/>
-                            <Label text="Mời Ngẫu Nhiên"
+                                     -fx-effect: dropshadow(gaussian, rgba(231,76,60,0.7), 15, 0.7, 0, 5);"
+                              onMouseClicked="#handleFindMatch">
+                            <Label text="⚔️" style="-fx-font-size: 32px;"/>
+                            <Label text="Tìm Trận"
                                    style="-fx-font-size: 13px; 
                                           -fx-font-weight: bold; 
                                           -fx-text-fill: white;"/>

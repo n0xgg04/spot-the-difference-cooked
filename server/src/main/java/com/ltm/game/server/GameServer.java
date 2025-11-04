@@ -14,12 +14,13 @@ public class GameServer {
         int port = Integer.parseInt(props.getProperty("server.port", "5050"));
         LobbyService lobby = new LobbyService();
         GameService gameService = new GameService(lobby, props);
+        QueueService queueService = new QueueService(gameService, lobby);
 
         System.out.println("Server starting on port " + port);
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             while (true) {
                 Socket socket = serverSocket.accept();
-                ClientHandler handler = new ClientHandler(socket, lobby, gameService);
+                ClientHandler handler = new ClientHandler(socket, lobby, gameService, queueService);
                 new Thread(handler, "client-" + socket.getPort()).start();
             }
         }

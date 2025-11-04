@@ -122,16 +122,10 @@ public class LobbyController {
     }
 
     @FXML
-    private void handleRandomInvite() {
-        System.out.println("Random invite clicked");
-        var candidates = filteredLobby.filtered(r -> "idle".equalsIgnoreCase(r.getStatus()));
-        if (candidates.isEmpty()) {
-            showStyledAlert("Thông báo", "Không có người chơi nào đang rảnh.", Alert.AlertType.INFORMATION);
-            return;
-        }
-        LobbyUserRow pick = candidates.get(new Random().nextInt(candidates.size()));
-        networkClient.send(new Message(Protocol.INVITE_SEND, Map.of("toUser", pick.getUsername())));
-        showStyledAlert("Đã gửi lời mời", "Đã gửi lời mời đến " + pick.getUsername(), Alert.AlertType.INFORMATION);
+    private void handleFindMatch() {
+        System.out.println("Find match clicked");
+        networkClient.send(new Message(Protocol.QUEUE_JOIN, null));
+        showQueueDialog();
     }
 
     @FXML
@@ -157,6 +151,126 @@ public class LobbyController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.showAndWait();
+    }
+    
+    private Stage queueDialog;
+    private Label queueTimerLabel;
+    private javafx.animation.Timeline queueTimer;
+    private int queueWaitSeconds = 0;
+    
+    private void showQueueDialog() {
+        if (queueDialog != null && queueDialog.isShowing()) {
+            return;
+        }
+        
+        queueDialog = new Stage();
+        queueDialog.initModality(Modality.APPLICATION_MODAL);
+        queueDialog.setTitle("Đang tìm trận...");
+        queueDialog.setResizable(false);
+        queueDialog.setOnCloseRequest(e -> {
+            e.consume();
+            leaveQueue();
+        });
+        
+        VBox dialogContent = new VBox(25);
+        dialogContent.setAlignment(Pos.CENTER);
+        dialogContent.setPadding(new Insets(40, 60, 40, 60));
+        dialogContent.setStyle(
+            "-fx-background-color: linear-gradient(to bottom right, #2c3e50, #34495e);" +
+            "-fx-background-radius: 20px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 25, 0.8, 0, 5);"
+        );
+        
+        Label iconLabel = new Label("⚔️");
+        iconLabel.setStyle("-fx-font-size: 64px;");
+        
+        Label headerLabel = new Label("ĐANG TÌM ĐỐI THỦ");
+        headerLabel.setStyle(
+            "-fx-font-size: 24px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: white;" +
+            "-fx-effect: dropshadow(gaussian, rgba(231,76,60,0.8), 8, 0.7, 0, 0);"
+        );
+        
+        queueTimerLabel = new Label("Thời gian chờ: 0 giây");
+        queueTimerLabel.setStyle(
+            "-fx-font-size: 18px;" +
+            "-fx-text-fill: #3498db;" +
+            "-fx-font-weight: bold;" +
+            "-fx-padding: 15px;" +
+            "-fx-background-color: rgba(255,255,255,0.1);" +
+            "-fx-background-radius: 10px;"
+        );
+        
+        Label infoLabel = new Label("Đang tìm kiếm đối thủ phù hợp...");
+        infoLabel.setStyle(
+            "-fx-font-size: 14px;" +
+            "-fx-text-fill: rgba(255,255,255,0.8);" +
+            "-fx-font-style: italic;"
+        );
+        
+        Button cancelBtn = new Button("❌ Rời hàng chờ");
+        cancelBtn.setStyle(
+            "-fx-font-size: 16px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: white;" +
+            "-fx-background-color: #e74c3c;" +
+            "-fx-background-radius: 25px;" +
+            "-fx-padding: 12px 30px;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(231,76,60,0.6), 10, 0.6, 0, 3);"
+        );
+        cancelBtn.setOnAction(e -> leaveQueue());
+        
+        dialogContent.getChildren().addAll(iconLabel, headerLabel, queueTimerLabel, infoLabel, cancelBtn);
+        
+        Scene dialogScene = new Scene(dialogContent);
+        dialogScene.setFill(Color.TRANSPARENT);
+        queueDialog.setScene(dialogScene);
+        
+        startQueueTimer();
+        queueDialog.show();
+    }
+    
+    private void startQueueTimer() {
+        queueWaitSeconds = 0;
+        queueTimer = new javafx.animation.Timeline(
+            new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
+                queueWaitSeconds++;
+                if (queueTimerLabel != null) {
+                    queueTimerLabel.setText("Thời gian chờ: " + queueWaitSeconds + " giây");
+                }
+            })
+        );
+        queueTimer.setCycleCount(javafx.animation.Timeline.INDEFINITE);
+        queueTimer.play();
+    }
+    
+    private void leaveQueue() {
+        if (queueTimer != null) {
+            queueTimer.stop();
+        }
+        networkClient.send(new Message(Protocol.QUEUE_LEAVE, null));
+        if (queueDialog != null) {
+            queueDialog.close();
+            queueDialog = null;
+        }
+    }
+    
+    public void onQueueMatched(String opponent) {
+        if (queueTimer != null) {
+            queueTimer.stop();
+        }
+        if (queueDialog != null) {
+            queueDialog.close();
+            queueDialog = null;
+        }
+        
+        javafx.application.Platform.runLater(() -> {
+            showStyledAlert("Tìm thấy đối thủ!", 
+                "Đã tìm thấy đối thủ: " + opponent + "\nTrận đấu sắp bắt đầu!", 
+                Alert.AlertType.INFORMATION);
+        });
     }
     
     @FXML
