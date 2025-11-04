@@ -177,8 +177,12 @@ public class ClientApp extends Application {
             
             resultController = loader.getController();
             resultController.setAudioService(audioService);
+            resultController.setNetworkClient(networkClient);
             resultController.setOnBackToLobby(v -> showLobby());
             resultController.setOnShowLeaderboard(v -> showLeaderboard());
+            resultController.setOnRematch(opponent -> {
+                showLobby();
+            });
             resultController.setGameResult(payload, username);
             
             stage.setScene(scene);

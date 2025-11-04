@@ -1,8 +1,14 @@
 package com.ltm.game.client.controllers;
 
 import com.ltm.game.client.services.AudioService;
+import com.ltm.game.shared.Message;
+import com.ltm.game.shared.Protocol;
+import com.ltm.game.client.services.NetworkClient;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -28,13 +34,29 @@ public class ResultController {
     
     @FXML
     private Label reasonLabel;
+    
+    @FXML
+    private StackPane rootPane;
+    
+    @FXML
+    private ImageView bgImageView;
+    
+    @FXML
+    private Pane overlayPane;
 
     private Consumer<Void> onBackToLobby;
     private Consumer<Void> onShowLeaderboard;
+    private Consumer<String> onRematch;
     private AudioService audioService;
+    private NetworkClient networkClient;
+    private String opponentName = "";
 
     public void setAudioService(AudioService service) {
         this.audioService = service;
+    }
+    
+    public void setNetworkClient(NetworkClient client) {
+        this.networkClient = client;
     }
 
     public void setOnBackToLobby(Consumer<Void> callback) {
@@ -43,6 +65,23 @@ public class ResultController {
 
     public void setOnShowLeaderboard(Consumer<Void> callback) {
         this.onShowLeaderboard = callback;
+    }
+    
+    public void setOnRematch(Consumer<String> callback) {
+        this.onRematch = callback;
+    }
+    
+    @FXML
+    private void initialize() {
+        if (bgImageView != null && rootPane != null) {
+            bgImageView.fitWidthProperty().bind(rootPane.widthProperty());
+            bgImageView.fitHeightProperty().bind(rootPane.heightProperty());
+        }
+        
+        if (overlayPane != null && rootPane != null) {
+            overlayPane.prefWidthProperty().bind(rootPane.widthProperty());
+            overlayPane.prefHeightProperty().bind(rootPane.heightProperty());
+        }
     }
 
     public void setGameResult(Map<?, ?> payload, String myUsername) {
@@ -64,6 +103,7 @@ public class ResultController {
                 myScore = score;
             } else {
                 opponentName = player;
+                this.opponentName = player;
                 opponentScore = score;
             }
         }
@@ -120,6 +160,16 @@ public class ResultController {
     private void handleViewLeaderboard() {
         if (onShowLeaderboard != null) {
             onShowLeaderboard.accept(null);
+        }
+    }
+    
+    @FXML
+    private void handleRematch() {
+        if (networkClient != null && !opponentName.isEmpty()) {
+            networkClient.send(new Message(Protocol.INVITE_SEND, Map.of("toUser", opponentName)));
+            if (onRematch != null) {
+                onRematch.accept(opponentName);
+            }
         }
     }
 }
