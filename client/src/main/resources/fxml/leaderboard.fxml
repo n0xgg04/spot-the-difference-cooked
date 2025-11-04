@@ -8,14 +8,15 @@
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.ltm.game.client.controllers.LeaderboardController"
+           fx:id="rootPane"
+           minWidth="1280" minHeight="720"
            style="-fx-background-color: #0a0e27;">
     
-    <ImageView preserveRatio="false" fitWidth="1280" fitHeight="720">
+    <ImageView fx:id="bgImageView" preserveRatio="false">
         <Image url="@../images/v2/forest-8227410.jpg"/>
     </ImageView>
     
-    <Pane style="-fx-background-color: linear-gradient(to bottom, rgba(10,14,39,0.75), rgba(20,30,60,0.85));"
-          prefWidth="1280" prefHeight="720"/>
+    <Pane fx:id="overlayPane" style="-fx-background-color: linear-gradient(to bottom, rgba(10,14,39,0.75), rgba(20,30,60,0.85));"/>
     
     <VBox alignment="TOP_CENTER" spacing="25">
         <padding>

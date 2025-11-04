@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
 import java.util.List;
@@ -17,6 +18,15 @@ import java.util.function.Consumer;
 public class LeaderboardController {
     @FXML
     private VBox entriesContainer;
+    
+    @FXML
+    private StackPane rootPane;
+    
+    @FXML
+    private ImageView bgImageView;
+    
+    @FXML
+    private Pane overlayPane;
 
     private NetworkClient networkClient;
     private Consumer<Void> onBack;
@@ -31,6 +41,16 @@ public class LeaderboardController {
 
     @FXML
     private void initialize() {
+        if (bgImageView != null && rootPane != null) {
+            bgImageView.fitWidthProperty().bind(rootPane.widthProperty());
+            bgImageView.fitHeightProperty().bind(rootPane.heightProperty());
+        }
+        
+        if (overlayPane != null && rootPane != null) {
+            overlayPane.prefWidthProperty().bind(rootPane.widthProperty());
+            overlayPane.prefHeightProperty().bind(rootPane.heightProperty());
+        }
+        
         if (networkClient != null) {
             requestLeaderboardData();
         }
@@ -60,29 +80,29 @@ public class LeaderboardController {
             int totalPoints = ((Number) entry.get("totalPoints")).intValue();
             int totalWins = ((Number) entry.get("totalWins")).intValue();
             
-            HBox entryRow = new HBox(12);
+            HBox entryRow = new HBox(15);
             entryRow.setAlignment(Pos.CENTER_LEFT);
-            entryRow.setPadding(new Insets(10, 15, 10, 15));
-            entryRow.setMaxWidth(650);
+            entryRow.setPadding(new Insets(18, 22, 18, 22));
+            entryRow.setMaxWidth(750);
             
             String bgColor;
             if (rank == 1) {
-                bgColor = "linear-gradient(to right, rgba(255,215,0,0.45), rgba(255,165,0,0.35))";
+                bgColor = "linear-gradient(to right, rgba(255,215,0,0.50), rgba(255,165,0,0.40))";
             } else if (rank == 2) {
-                bgColor = "linear-gradient(to right, rgba(192,192,192,0.45), rgba(169,169,169,0.35))";
+                bgColor = "linear-gradient(to right, rgba(192,192,192,0.50), rgba(169,169,169,0.40))";
             } else if (rank == 3) {
-                bgColor = "linear-gradient(to right, rgba(205,127,50,0.45), rgba(184,115,51,0.35))";
+                bgColor = "linear-gradient(to right, rgba(205,127,50,0.50), rgba(184,115,51,0.40))";
             } else {
-                bgColor = "rgba(30,90,158,0.3)";
+                bgColor = "rgba(30,90,158,0.35)";
             }
             
             entryRow.setStyle(
                 "-fx-background-color: " + bgColor + ";" +
-                "-fx-background-radius: 10px;" +
-                "-fx-border-color: rgba(100,180,255,0.4);" +
-                "-fx-border-width: 1.5px;" +
-                "-fx-border-radius: 10px;" +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 5, 0.6, 0, 2);"
+                "-fx-background-radius: 30px;" +
+                "-fx-border-color: rgba(255,255,255,0.35);" +
+                "-fx-border-width: 2px;" +
+                "-fx-border-radius: 30px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 8, 0.7, 0, 3);"
             );
             
             Label rankLabel = new Label();
@@ -110,22 +130,22 @@ public class LeaderboardController {
             
             Label avatarLabel = new Label("👤");
             avatarLabel.setStyle(
-                "-fx-font-size: 24px;" +
-                "-fx-background-color: rgba(255,255,255,0.2);" +
-                "-fx-background-radius: 22px;" +
-                "-fx-min-width: 44px;" +
-                "-fx-min-height: 44px;" +
+                "-fx-font-size: 26px;" +
+                "-fx-background-color: rgba(255,255,255,0.25);" +
+                "-fx-background-radius: 28px;" +
+                "-fx-min-width: 52px;" +
+                "-fx-min-height: 52px;" +
                 "-fx-alignment: center;"
             );
             
             Label nameLabel = new Label(playerName);
             nameLabel.setStyle(
-                "-fx-font-size: 17px;" +
+                "-fx-font-size: 19px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: white;" +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 2, 0.6, 0, 1);"
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 3, 0.7, 0, 2);"
             );
-            nameLabel.setMinWidth(200);
+            nameLabel.setMinWidth(220);
             
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);

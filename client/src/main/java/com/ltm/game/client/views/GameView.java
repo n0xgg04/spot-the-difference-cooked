@@ -28,7 +28,6 @@ public class GameView {
     private final Canvas canvas = new Canvas(900, 450);
     private final Label scoreLabel = new Label("Score: 0");
     private final Label timerLabel = new Label("⏱ 15");
-    private final Label roundLabel = new Label("Round: 1");
     private final Label turnLabel = new Label("Lượt của bạn");
     
     private AudioService audioService;
@@ -135,48 +134,30 @@ public class GameView {
     }
     
     private HBox createTopBar() {
-        HBox topBar = new HBox(20);
+        HBox topBar = new HBox(30);
         topBar.setAlignment(Pos.CENTER);
         topBar.setPadding(new Insets(15, 20, 15, 20));
-        
-        VBox roundBox = new VBox(5);
-        roundBox.setAlignment(Pos.CENTER);
-        roundBox.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #667eea, #764ba2);" +
-            "-fx-background-radius: 20px;" +
-            "-fx-padding: 12px 25px;" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0.7, 0, 4);"
-        );
-        
-        Label roundTitle = new Label("Round: 1");
-        roundTitle.setStyle(
-            "-fx-font-size: 22px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: white;" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 3, 0.7, 0, 2);"
-        );
-        roundBox.getChildren().add(roundTitle);
         
         VBox scoreBox = new VBox(5);
         scoreBox.setAlignment(Pos.CENTER);
         scoreBox.setStyle(
             "-fx-background-color: linear-gradient(to bottom, #4facfe, #00f2fe);" +
             "-fx-background-radius: 20px;" +
-            "-fx-padding: 12px 30px;" +
+            "-fx-padding: 12px 35px;" +
             "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0.7, 0, 4);"
         );
         
         Label scoreIcon = new Label("🎯");
-        scoreIcon.setStyle("-fx-font-size: 28px;");
+        scoreIcon.setStyle("-fx-font-size: 32px;");
         
         scoreLabel.setStyle(
-            "-fx-font-size: 20px;" +
+            "-fx-font-size: 22px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: white;" +
             "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 3, 0.7, 0, 2);"
         );
         
-        HBox scoreContent = new HBox(8);
+        HBox scoreContent = new HBox(10);
         scoreContent.setAlignment(Pos.CENTER);
         scoreContent.getChildren().addAll(scoreIcon, scoreLabel);
         scoreBox.getChildren().add(scoreContent);
@@ -186,12 +167,12 @@ public class GameView {
         timerBox.setStyle(
             "-fx-background-color: linear-gradient(to bottom, #fa709a, #fee140);" +
             "-fx-background-radius: 20px;" +
-            "-fx-padding: 12px 25px;" +
+            "-fx-padding: 12px 30px;" +
             "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0.7, 0, 4);"
         );
         
         timerLabel.setStyle(
-            "-fx-font-size: 22px;" +
+            "-fx-font-size: 24px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: white;" +
             "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 3, 0.7, 0, 2);"
@@ -203,7 +184,7 @@ public class GameView {
         HBox.setHgrow(spacer1, Priority.ALWAYS);
         HBox.setHgrow(spacer2, Priority.ALWAYS);
         
-        topBar.getChildren().addAll(spacer1, roundBox, scoreBox, timerBox, spacer2);
+        topBar.getChildren().addAll(spacer1, scoreBox, timerBox, spacer2);
         
         return topBar;
     }
