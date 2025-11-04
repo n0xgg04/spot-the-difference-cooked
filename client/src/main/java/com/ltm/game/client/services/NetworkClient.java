@@ -1,26 +1,26 @@
-package com.example.client;
+package com.ltm.game.client.services;
 
-import com.example.shared.Message;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import com.google.gson.Gson;
+import com.ltm.game.shared.Message;
 import javafx.application.Platform;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class NetworkClient {
-    private static final Gson GSON = new Gson();
     private final Consumer<Message> onMessage;
     private PrintWriter out;
     private Socket socket;
     private BufferedReader reader;
     private final Map<String, Consumer<Message>> handlers = new ConcurrentHashMap<>();
 
-    public NetworkClient(Consumer<Message> onMessage) { this.onMessage = onMessage; }
+    public NetworkClient(Consumer<Message> onMessage) {
+        this.onMessage = onMessage;
+    }
 
     public void connect() {
         try {
@@ -45,25 +45,27 @@ public class NetworkClient {
             socket = new Socket(host, port);
             out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8)), true);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+            
             Thread t = new Thread(() -> {
                 try {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         Message msg = Message.fromJson(line);
-                    Consumer<Message> handler = handlers.get(msg.type);
-                    if (handler != null) {
-                        handler.accept(msg);
-                    } else {
-                        onMessage.accept(msg);
-                    }
+                        Consumer<Message> handler = handlers.get(msg.type);
+                        if (handler != null) {
+                            handler.accept(msg);
+                        } else {
+                            onMessage.accept(msg);
+                        }
                     }
                 } catch (Exception e) {
-                    Platform.runLater(() -> System.err.println("Disconnected: "+e.getMessage()));
+                    Platform.runLater(() -> System.err.println("Disconnected: " + e.getMessage()));
                 }
             }, "net-reader");
-            t.setDaemon(true); t.start();
+            t.setDaemon(true);
+            t.start();
         } catch (Exception e) {
-            throw new RuntimeException("Cannot connect to server: "+e.getMessage(), e);
+            throw new RuntimeException("Cannot connect to server: " + e.getMessage(), e);
         }
     }
 
@@ -81,3 +83,4 @@ public class NetworkClient {
         try { if (socket != null) socket.close(); } catch (Exception ignored) {}
     }
 }
+

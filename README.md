@@ -1,78 +1,214 @@
-# Spot The Difference (Java/JavaFX/Sockets/MySQL)
+# 🎮 Spot The Difference - Quick Start Guide
 
-Dự án client-server chơi tìm điểm khác biệt. Xem cấu hình trong `server/src/main/resources/server-config.properties` và `client/src/main/resources/client-config.properties`.
+## 📋 Yêu cầu hệ thống
 
-- Build: `mvn -q -DskipTests package`
-- Chạy server: `mvn -q -pl server exec:java`
-- Chạy client (JavaFX): `mvn -q -pl client javafx:run`
-- Công cụ admin upload ảnh: `mvn -q -pl admin javafx:run`
+- Java 17+
+- Maven 3.6+
+- Docker & Docker Compose (cho database)
 
-Xem thư mục `db/` để khởi tạo schema MySQL.
+## 🚀 Chạy nhanh với Makefile
 
-## Khởi tạo database và dữ liệu mẫu
+### Xem tất cả commands
 
-1. Tạo schema và bảng:
-
-```powershell
-mysql -u root -p < db/schema.sql
+```bash
+make help
 ```
 
-2. Nạp dữ liệu mẫu (user với mật khẩu dạng plain text theo yêu cầu):
+### Chạy toàn bộ ứng dụng (Database + Server + Client)
 
-```powershell
-mysql -u root -p spotgame < db/seed.sql
+```bash
+make all
+# hoặc
+make run
 ```
 
-- User mẫu: alice/123456, bob/123456, carol/password
-- Có sẵn vài trận đấu và bảng xếp hạng đã được tính lại.
+### Chạy từng thành phần riêng lẻ
 
-## Chạy trực tiếp trong VS Code (khuyên dùng)
+#### 1. Start Database
 
-Đã cấu hình sẵn Tasks trong `.vscode/tasks.json`.
-
-1. Mở Command Palette (Ctrl+Shift+P) > “Tasks: Run Task” > chọn “Run Server”.
-   - Server sẽ chạy nền trên port 5050.
-2. Lặp lại “Tasks: Run Task” > chọn “Run Client” để mở ứng dụng JavaFX.
-3. (Tuỳ chọn) “Run Admin Uploader” để chuẩn bị dữ liệu bộ ảnh.
-
-Mẹo/khắc phục nhanh:
-
-- Nếu báo “Address already in use: bind”, hãy dừng tiến trình Java cũ rồi chạy lại server:
-  - Windows PowerShell:
-    ```powershell
-    taskkill /F /IM java.exe
-    ```
-- Nếu client báo “Connection refused”, hãy đảm bảo server đang chạy và cấu hình `client-config.properties` trỏ tới đúng host/port.
-- Nếu JavaFX không mở, thử cập nhật JDK 17 và đảm bảo VS Code có Java Extension Pack.
-
-## Công cụ Admin Uploader (chuẩn bị dữ liệu)
-
-Bạn có thể dùng module `admin` để nạp cặp ảnh và đánh dấu điểm khác biệt, dữ liệu sẽ lưu vào các bảng `image_sets`, `image_differences`.
-
-Chạy:
-
-```powershell
-mvn -pl admin javafx:run
+```bash
+make db
 ```
 
-Chỉnh DB trong `admin/src/main/resources/admin-config.properties` nếu cần.
+#### 2. Run Server
 
-Lưu ý về nơi lưu ảnh (mặc định: lưu FILE, lưu đường dẫn vào DB):
-
-- Ảnh được sao chép vào thư mục do cấu hình `storage.dir` (admin) và `content.dir` (server) chỉ định. Mặc định là `content/imagesets/` ở thư mục dự án.
-- Database chỉ lưu đường dẫn tương đối (cột `img_left_path`, `img_right_path` trong bảng `image_sets`).
-- Kiểm tra nhanh các bản ghi mới:
-
-```sql
-SELECT id, name, width, height, img_left_path, img_right_path, created_at
-FROM image_sets
-ORDER BY id DESC
-LIMIT 5;
+```bash
+make server
 ```
 
-- Server sẽ đọc file theo `content.dir`, chuyển thành Base64 và gửi cho client khi bắt đầu trận.
+#### 3. Run Client
 
-mvn -pl server exec:java
-mvn -pl client javafx:run
-mvn -pl client javafx:run
-mvn -pl admin javafx:run
+```bash
+make client
+```
+
+#### 4. Run Admin Tool
+
+```bash
+make admin
+```
+
+### Development Mode (DB + Server chạy với Maven)
+
+```bash
+make dev
+```
+
+### Dừng tất cả services
+
+```bash
+make stop
+```
+
+### Các commands hữu ích khác
+
+**Build project:**
+
+```bash
+make build
+```
+
+**Clean build artifacts:**
+
+```bash
+make clean
+```
+
+**Kiểm tra trạng thái services:**
+
+```bash
+make status
+```
+
+**Xem database logs:**
+
+```bash
+make logs
+```
+
+**Reset database:**
+
+```bash
+make db-reset
+```
+
+**Package applications:**
+
+```bash
+make package
+```
+
+## 📂 Cấu trúc Project sau Refactoring
+
+```
+game/
+├── Makefile                    # Build & run automation
+├── client/                     # JavaFX Game Client
+│   └── src/main/java/com/ltm/game/client/
+│       ├── ClientApp.java      # Main application
+│       ├── controllers/        # FXML Controllers
+│       ├── views/             # Game views
+│       ├── models/            # Data models
+│       └── services/          # Business services
+├── server/                    # Game Server
+│   └── src/main/java/com/example/server/
+├── shared/                    # Shared models & protocol
+│   └── src/main/java/com/ltm/game/shared/
+├── admin/                     # Admin tool for uploading images
+└── docker-compose.yaml        # Database setup
+```
+
+## 🎯 Workflow thông thường
+
+### Lần đầu setup:
+
+```bash
+# 1. Build tất cả
+make build
+
+# 2. Start database
+make db
+
+# 3. Chạy server (terminal 1)
+make server
+
+# 4. Chạy client (terminal 2)
+make client
+```
+
+### Development:
+
+```bash
+# Chạy tất cả một lần
+make all
+```
+
+### Kết thúc:
+
+```bash
+# Dừng tất cả
+make stop
+```
+
+## 🔧 Cấu hình
+
+### Database
+
+- Host: localhost
+- Port: 3306
+- Database: spotgame
+- Username: root
+- Password: root
+
+### Server
+
+- Port: 5050
+
+## 🐛 Troubleshooting
+
+### Database không start được
+
+```bash
+# Kiểm tra Docker đang chạy
+docker ps
+
+# Reset database
+make db-reset
+```
+
+### Server không kết nối được database
+
+```bash
+# Kiểm tra database đã sẵn sàng chưa
+make logs
+
+# Đợi cho healthcheck pass
+```
+
+### Client không kết nối được server
+
+```bash
+# Kiểm tra server đang chạy
+make status
+
+# Xem log server
+ps aux | grep server
+```
+
+## 📝 Notes
+
+- Makefile tự động build trước khi chạy các services
+- Database data được persist trong Docker volume
+- Server tạo fat JAR với tất cả dependencies
+- Client chạy qua Maven JavaFX plugin
+
+## 🎨 Package Name Convention
+
+Toàn bộ project đã được refactor sang package name mới:
+
+- **Old**: `com.example.*`
+- **New**: `com.ltm.game.*`
+
+---
+
+**Happy Gaming! 🎮**

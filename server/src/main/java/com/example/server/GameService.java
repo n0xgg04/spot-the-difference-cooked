@@ -1,8 +1,8 @@
 package com.example.server;
 
-import com.example.shared.Message;
-import com.example.shared.models.User;
-import com.example.shared.Protocol;
+import com.ltm.game.shared.Message;
+import com.ltm.game.shared.models.User;
+import com.ltm.game.shared.Protocol;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

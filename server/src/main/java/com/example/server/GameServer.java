@@ -1,7 +1,7 @@
 package com.example.server;
 
-import com.example.shared.Message;
-import com.example.shared.Protocol;
+import com.ltm.game.shared.Message;
+import com.ltm.game.shared.Protocol;
 
 import java.io.IOException;
 import java.net.ServerSocket;

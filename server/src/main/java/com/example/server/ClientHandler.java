@@ -1,13 +1,13 @@
 package com.example.server;
 
-import com.example.shared.Message;
-import com.example.shared.models.LeaderboardEntry;
+import com.ltm.game.shared.Message;
+import com.ltm.game.shared.models.LeaderboardEntry;
 import java.util.List;
 import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import com.example.shared.Protocol;
+import com.ltm.game.shared.Protocol;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;

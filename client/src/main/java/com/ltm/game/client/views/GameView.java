@@ -1,28 +1,27 @@
-package com.example.client;
+package com.ltm.game.client.views;
 
+import com.ltm.game.client.services.AudioService;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.media.AudioClip;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.io.ByteArrayInputStream;
 
 public class GameView {
     private final BorderPane root = new BorderPane();
@@ -30,9 +29,8 @@ public class GameView {
     private final Label scoreLabel = new Label("Điểm số");
     private final Label timerLabel = new Label("⏱ 15s");
     private final Label turnLabel = new Label("Lượt của bạn");
-    private AudioClip gameMusic;
-    private AudioClip correctSound;
-    private AudioClip wrongSound;
+    
+    private AudioService audioService;
     private String nextTurn = "";
     private int scoreA = 0, scoreB = 0;
     private String playerA = "";
@@ -41,57 +39,29 @@ public class GameView {
     private int remainingSeconds = 15;
     private Timeline countdownTimer;
     private final List<Map<String,Object>> found = new ArrayList<>();
-    private Double lastClickX = null; // Để hiển thị dấu X tạm thời
+    private Double lastClickX = null;
     private Double lastClickY = null;
-    private boolean justClicked = false; // Track if player just clicked
-    // Images and geometry
+    private boolean justClicked = false;
+    
     private Image leftImg;
     private Image rightImg;
     private int imgW = 300;
     private int imgH = 300;
     private final double boxX1 = 50, boxY = 80, boxX2 = 500, boxSize = 350;
 
-    public GameView(BiConsumer<Double, Double> onClick, String myUsername) {
+    public GameView(BiConsumer<Double, Double> onClick, String myUsername, AudioService audioService) {
         this.myUsername = myUsername;
+        this.audioService = audioService;
         
-        // Play game background music
-        try {
-            String musicPath = getClass().getResource("/sounds/nhac_ingame.mp3").toExternalForm();
-            gameMusic = new AudioClip(musicPath);
-            gameMusic.setCycleCount(AudioClip.INDEFINITE); // Loop forever
-            gameMusic.setVolume(0.25); // 25% volume
-            gameMusic.play();
-            System.out.println("Playing game music: " + musicPath);
-        } catch (Exception e) {
-            System.out.println("Could not load game music: " + e.getMessage());
+        if (audioService != null) {
+            audioService.playGameMusic();
+            audioService.loadGameSounds();
         }
         
-        // Load correct answer sound effect
-        try {
-            String correctPath = getClass().getResource("/sounds/ye_đoan_dung_roi.mp3").toExternalForm();
-            correctSound = new AudioClip(correctPath);
-            correctSound.setVolume(0.6); // 60% volume
-            System.out.println("Loaded correct sound: " + correctPath);
-        } catch (Exception e) {
-            System.out.println("Could not load correct sound: " + e.getMessage());
-        }
-        
-        // Load wrong answer sound effect
-        try {
-            String wrongPath = getClass().getResource("/sounds/phai_chiu.mp3").toExternalForm();
-            wrongSound = new AudioClip(wrongPath);
-            wrongSound.setVolume(0.5); // 50% volume
-            System.out.println("Loaded wrong sound: " + wrongPath);
-        } catch (Exception e) {
-            System.out.println("Could not load wrong sound: " + e.getMessage());
-        }
-        
-        // Gradient background - darker and more modern
         root.setStyle(
             "-fx-background-color: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);"
         );
         
-        // Top panel - Game info header with glass effect
         VBox topPanel = new VBox(8);
         topPanel.setPadding(new Insets(20, 25, 15, 25));
         topPanel.setAlignment(Pos.CENTER);
@@ -121,13 +91,11 @@ public class GameView {
         
         topPanel.getChildren().addAll(titleLabel, scoreLabel);
         
-        // Center - Canvas with modern padding
         VBox centerContainer = new VBox();
         centerContainer.setAlignment(Pos.CENTER);
         centerContainer.setPadding(new Insets(15));
         centerContainer.getChildren().add(canvas);
         
-        // Bottom panel - Modern timer and turn indicator
         HBox bottomPanel = new HBox(40);
         bottomPanel.setPadding(new Insets(15, 25, 20, 25));
         bottomPanel.setAlignment(Pos.CENTER);
@@ -167,7 +135,6 @@ public class GameView {
         root.setBottom(bottomPanel);
         root.setPadding(new Insets(10));
         
-        // Setup countdown timer (runs every 1 second)
         countdownTimer = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             if (remainingSeconds > 0) {
                 remainingSeconds--;
@@ -181,7 +148,6 @@ public class GameView {
             double x = e.getX();
             double y = e.getY();
             System.out.println("Canvas clicked at: (" + x + ", " + y + ")");
-            // Map click to image-space if within either box
             Double mappedX = null, mappedY = null;
             if (x >= boxX1 && x <= boxX1 + boxSize && y >= boxY && y <= boxY + boxSize) {
                 double lx = x - boxX1; double ly = y - boxY;
@@ -198,8 +164,8 @@ public class GameView {
                 System.out.println("Sending onClick callback with coords: (" + mappedX + ", " + mappedY + ")");
                 lastClickX = mappedX;
                 lastClickY = mappedY;
-                justClicked = true; // Mark that we just clicked
-                render(); // Vẽ lại để hiển thị dấu X
+                justClicked = true;
+                render();
                 onClick.accept(mappedX, mappedY);
             } else {
                 System.out.println("Click outside image boxes - ignoring");
@@ -210,16 +176,13 @@ public class GameView {
     private void drawBase() {
         GraphicsContext g = canvas.getGraphicsContext2D();
         
-        // Clean white background for easy viewing
         g.setFill(Color.WHITE);
         g.fillRect(0, 0, 900, 450);
         
-        // Draw subtle shadow frames
         g.setFill(Color.web("#e0e0e0"));
         g.fillRect(boxX1 - 5, boxY - 5, boxSize + 10, boxSize + 10);
         g.fillRect(boxX2 - 5, boxY - 5, boxSize + 10, boxSize + 10);
         
-        // Draw images or placeholders
         if (leftImg != null) {
             g.drawImage(leftImg, boxX1, boxY, boxSize, boxSize);
         } else { 
@@ -233,14 +196,12 @@ public class GameView {
             g.fillRect(boxX2, boxY, boxSize, boxSize);
         }
         
-        // Draw clean borders
         g.setStroke(Color.web("#333333"));
         g.setLineWidth(3);
         g.strokeRect(boxX1, boxY, boxSize, boxSize);
         g.strokeRect(boxX2, boxY, boxSize, boxSize);
         g.setLineWidth(1);
         
-        // Simple labels above images
         g.setFill(Color.web("#333333"));
         g.setFont(Font.font("System", FontWeight.BOLD, 18));
         g.fillText("ẢNH GỐC", boxX1 + boxSize/2 - 35, boxY - 12);
@@ -249,11 +210,9 @@ public class GameView {
 
     public void updateFromPayload(Map<?,?> p) {
         String oldNextTurn = nextTurn;
-        int oldScoreA = scoreA, oldScoreB = scoreB;
         
         Object scoresObj = p.get("scores");
         if (scoresObj instanceof Map<?,?> s) {
-            // Extract player names and scores
             var entries = new ArrayList<>(s.entrySet());
             if (entries.size() >= 2) {
                 var e1 = (Map.Entry<?,?>) entries.get(0);
@@ -265,30 +224,15 @@ public class GameView {
             }
         }
         
-        // Check if turn changed
         String newNextTurn = p.get("nextTurn") != null ? String.valueOf(p.get("nextTurn")) : nextTurn;
         boolean turnChanged = !oldNextTurn.isEmpty() && !newNextTurn.equals(oldNextTurn);
-        boolean wasMyTurn = oldNextTurn.equals(myUsername);
-        
-        // Check if my score increased
-        int myOldScore = 0, myNewScore = 0;
-        if (playerA.equals(myUsername)) {
-            myOldScore = oldScoreA;
-            myNewScore = scoreA;
-        } else if (playerB.equals(myUsername)) {
-            myOldScore = oldScoreB;
-            myNewScore = scoreB;
-        }
-        boolean myScoreIncreased = myNewScore > myOldScore;
         
         nextTurn = newNextTurn;
         
-        // Update timer from remainingTurnMs and restart countdown
         if (p.get("remainingTurnMs") != null) {
             long ms = ((Number)p.get("remainingTurnMs")).longValue();
             remainingSeconds = (int) Math.max(0, ms / 1000);
             
-            // Restart countdown timer
             countdownTimer.stop();
             if (remainingSeconds > 0) {
                 countdownTimer.playFromStart();
@@ -299,35 +243,33 @@ public class GameView {
         if (p.get("found") instanceof List<?> f) {
             int oldFoundCount = found.size();
             found.clear();
-            lastClickX = null; // Xóa dấu X tạm thời khi có update từ server
+            lastClickX = null;
             lastClickY = null;
             
             Map<String,Object> latestFind = null;
             for (Object o: f) {
                 if (o instanceof Map<?,?> m) {
+                    @SuppressWarnings("unchecked")
                     Map<String,Object> findMap = (Map<String,Object>) m;
                     found.add(findMap);
                     latestFind = findMap;
                 }
             }
             
-            // Play sound if new difference found by current player
             if (found.size() > oldFoundCount && latestFind != null) {
                 String finder = latestFind.get("finder") != null ? String.valueOf(latestFind.get("finder")) : "";
-                if (finder.equals(myUsername) && correctSound != null) {
-                    correctSound.play();
+                if (finder.equals(myUsername) && audioService != null) {
+                    audioService.playCorrectSound();
                     System.out.println("Playing correct sound - player found a difference!");
                 }
-                justClicked = false; // Reset flag after successful find
+                justClicked = false;
             } else if (justClicked && found.size() == oldFoundCount) {
-                // We clicked but no new difference was found = WRONG click
-                if (wrongSound != null) {
-                    wrongSound.play();
+                if (audioService != null) {
+                    audioService.playWrongSound();
                     System.out.println("Playing wrong sound - clicked but missed!");
                 }
-                justClicked = false; // Reset flag after miss
+                justClicked = false;
             } else if (turnChanged) {
-                // Turn changed (timeout or other reason) - reset click flag
                 justClicked = false;
             }
         }
@@ -346,7 +288,6 @@ public class GameView {
                 "-fx-effect: dropshadow(gaussian, rgba(0,255,136,0.8), 6, 0.8, 0, 0);"
             );
             
-            // Change timer color based on remaining time
             String timerColor = remainingSeconds <= 5 ? "#ff3838" : "#ffeaa7";
             String glowColor = remainingSeconds <= 5 ? "rgba(255,56,56,0.7)" : "rgba(255,234,167,0.5)";
             
@@ -391,7 +332,6 @@ public class GameView {
         drawBase();
         GraphicsContext g = canvas.getGraphicsContext2D();
         
-        // Draw found circles on both images with premium color and glow effects
         for (Map<String,Object> d : found) {
             double x = ((Number)d.get("x")).doubleValue();
             double y = ((Number)d.get("y")).doubleValue();
@@ -400,30 +340,26 @@ public class GameView {
             double sy = y * (boxSize / imgH);
             double rr = r * (boxSize / imgW);
             
-            // Determine color based on who found this difference
             String finder = d.get("finder") != null ? String.valueOf(d.get("finder")) : "";
             Color circleColor;
             if (finder.equals(myUsername)) {
-                circleColor = Color.web("#00ff88"); // Neon green for my points
+                circleColor = Color.web("#00ff88");
             } else if (finder.equals(playerA) || finder.equals(playerB)) {
-                circleColor = Color.web("#ff3838"); // Neon red for opponent's points
+                circleColor = Color.web("#ff3838");
             } else {
-                circleColor = Color.ORANGE; // Unknown/legacy
+                circleColor = Color.ORANGE;
             }
             
-            // Draw outer glow (largest)
             g.setStroke(circleColor.deriveColor(0, 1, 1, 0.15));
             g.setLineWidth(14);
             g.strokeOval(boxX1 + sx - rr - 5, boxY + sy - rr - 5, rr*2 + 10, rr*2 + 10);
             g.strokeOval(boxX2 + sx - rr - 5, boxY + sy - rr - 5, rr*2 + 10, rr*2 + 10);
             
-            // Draw middle glow
             g.setStroke(circleColor.deriveColor(0, 1, 1, 0.4));
             g.setLineWidth(8);
             g.strokeOval(boxX1 + sx - rr - 2, boxY + sy - rr - 2, rr*2 + 4, rr*2 + 4);
             g.strokeOval(boxX2 + sx - rr - 2, boxY + sy - rr - 2, rr*2 + 4, rr*2 + 4);
             
-            // Draw main circle (brightest)
             g.setStroke(circleColor);
             g.setLineWidth(5);
             g.strokeOval(boxX1 + sx - rr, boxY + sy - rr, rr*2, rr*2);
@@ -431,14 +367,12 @@ public class GameView {
             g.setLineWidth(1);
         }
         
-        // Vẽ dấu X tạm thời tại vị trí click gần nhất
         if (lastClickX != null && lastClickY != null) {
             double sx = lastClickX * (boxSize / imgW);
             double sy = lastClickY * (boxSize / imgH);
             g.setStroke(Color.YELLOW);
             g.setLineWidth(3);
             double crossSize = 12;
-            // Vẽ X trên cả 2 ảnh
             g.strokeLine(boxX1 + sx - crossSize, boxY + sy - crossSize, boxX1 + sx + crossSize, boxY + sy + crossSize);
             g.strokeLine(boxX1 + sx + crossSize, boxY + sy - crossSize, boxX1 + sx - crossSize, boxY + sy + crossSize);
             g.strokeLine(boxX2 + sx - crossSize, boxY + sy - crossSize, boxX2 + sx + crossSize, boxY + sy + crossSize);
@@ -446,16 +380,13 @@ public class GameView {
             g.setLineWidth(1);
         }
         
-        // Display scores with player names - highlight current player
-        String myScore = "", opponentScore = "", opponent = "";
+        String myScore = "", opponentScore = "";
         if (playerA.equals(myUsername)) {
             myScore = playerA + ": " + scoreA;
             opponentScore = playerB + ": " + scoreB;
-            opponent = playerB;
         } else if (playerB.equals(myUsername)) {
             myScore = playerB + ": " + scoreB;
             opponentScore = playerA + ": " + scoreA;
-            opponent = playerA;
         } else {
             myScore = "Bạn: ?";
             opponentScore = "Đối thủ: ?";
@@ -465,7 +396,9 @@ public class GameView {
         scoreLabel.setText(scoreText);
     }
 
-    public BorderPane getRoot() { return root; }
+    public BorderPane getRoot() { 
+        return root; 
+    }
 
     public void setImages(byte[] leftBytes, byte[] rightBytes, int width, int height) {
         System.out.println("GameView.setImages called: leftBytes=" + (leftBytes != null ? leftBytes.length : "null") + ", rightBytes=" + (rightBytes != null ? rightBytes.length : "null") + ", w=" + width + ", h=" + height);
@@ -483,18 +416,5 @@ public class GameView {
         }
         render();
     }
-    
-    public void stopMusic() {
-        if (gameMusic != null) {
-            gameMusic.stop();
-            System.out.println("Stopped game music");
-        }
-    }
-    
-    public void playWrongSound() {
-        if (wrongSound != null) {
-            wrongSound.play();
-            System.out.println("Playing wrong sound - incorrect guess!");
-        }
-    }
 }
+

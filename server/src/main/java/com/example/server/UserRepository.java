@@ -1,6 +1,6 @@
 package com.example.server;
 
-import com.example.shared.models.User;
+import com.ltm.game.shared.models.User;
 
 import java.sql.*;
 import java.util.Optional;

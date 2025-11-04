@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ltm.game.client.controllers.LeaderboardController"
+      spacing="0"
+      style="-fx-background-color: linear-gradient(to bottom, #0a1929, #1a2f4a); -fx-padding: 0;">
+    
+    <VBox alignment="CENTER" spacing="12"
+          style="-fx-background-color: linear-gradient(to bottom, rgba(30,144,255,0.3), rgba(0,0,0,0.1)); -fx-border-color: rgba(255,255,255,0.1); -fx-border-width: 0 0 2 0;">
+        <padding>
+            <Insets top="20" right="15" bottom="18" left="15"/>
+        </padding>
+        
+        <Label text="BẢNG XẾP HẠNG"
+               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white; -fx-background-color: #1e5a9e; -fx-padding: 8px 35px; -fx-background-radius: 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 8, 0.6, 0, 3);"/>
+        
+        <Button text="⬅ Quay lại"
+                onAction="#handleBack"
+                style="-fx-font-size: 13px; -fx-padding: 6px 18px; -fx-background-color: #7f8c8d; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: bold;"/>
+    </VBox>
+    
+    <ScrollPane fitToWidth="true"
+                VBox.vgrow="ALWAYS"
+                style="-fx-background-color: transparent; -fx-background: transparent;"
+                hbarPolicy="NEVER"
+                vbarPolicy="AS_NEEDED">
+        <StackPane alignment="TOP_CENTER">
+            <VBox fx:id="entriesContainer"
+                  spacing="8"
+                  alignment="TOP_CENTER"
+                  maxWidth="700">
+                <padding>
+                    <Insets top="18" right="20" bottom="18" left="20"/>
+                </padding>
+            </VBox>
+        </StackPane>
+    </ScrollPane>
+</VBox>
+

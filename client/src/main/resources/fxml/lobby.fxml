@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane fx:id="rootPane"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.ltm.game.client.controllers.LobbyController"
+            style="-fx-background-color: linear-gradient(to bottom right, #2c3e50, #3498db);">
+    
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+    
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="10"
+              style="-fx-background-color: rgba(41, 128, 185, 0.85); -fx-background-radius: 15px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.6, 0, 3);">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            
+            <Label fx:id="headerUserInfo"
+                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: white; -fx-effect: dropshadow(gaussian, black, 3, 0.5, 0, 0);"/>
+            
+            <Button text="🚪 Thoát"
+                    onAction="#handleLogout"
+                    style="-fx-font-size: 14px; -fx-padding: 8px 20px; -fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+    
+    <center>
+        <VBox spacing="15">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            
+            <HBox alignment="CENTER_LEFT" spacing="15"
+                  style="-fx-background-color: rgba(52, 152, 219, 0.3); -fx-background-radius: 10px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0.4, 0, 2);">
+                <padding>
+                    <Insets top="15" right="15" bottom="15" left="15"/>
+                </padding>
+                
+                <TextField fx:id="searchField"
+                           promptText="🔍 Tìm người chơi..."
+                           prefHeight="40"
+                           HBox.hgrow="ALWAYS"
+                           style="-fx-font-size: 14px; -fx-padding: 10px 15px; -fx-background-radius: 20px; -fx-background-color: rgba(255, 255, 255, 0.9); -fx-border-color: #3498db; -fx-border-radius: 20px; -fx-border-width: 2px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0.3, 0, 1);"/>
+                
+                <CheckBox fx:id="autoRefresh"
+                          text="🔄 Refresh tự động"
+                          style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, black, 2, 0.5, 0, 0);"/>
+            </HBox>
+            
+            <TableView fx:id="lobbyTable"
+                       VBox.vgrow="ALWAYS"
+                       style="-fx-background-color: rgba(255, 255, 255, 0.95); -fx-background-radius: 10px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.5, 0, 2); -fx-font-size: 13px;">
+                <placeholder>
+                    <Label text="Không có người chơi khác đang trực tuyến."/>
+                </placeholder>
+                <columns>
+                    <TableColumn fx:id="colUser" text="👤 Tên" prefWidth="150"
+                                 style="-fx-alignment: CENTER-LEFT; -fx-font-weight: bold;"/>
+                    <TableColumn fx:id="colPoints" text="⭐ Tổng điểm" prefWidth="120"
+                                 style="-fx-alignment: CENTER; -fx-text-fill: #f39c12; -fx-font-weight: bold;"/>
+                    <TableColumn fx:id="colStatus" text="📊 Trạng thái" prefWidth="120"
+                                 style="-fx-alignment: CENTER;"/>
+                    <TableColumn fx:id="colAction" text="🎯 Hành động" prefWidth="150"
+                                 style="-fx-alignment: CENTER;"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </center>
+    
+    <right>
+        <VBox spacing="15" alignment="TOP_CENTER"
+              style="-fx-background-color: rgba(44, 62, 80, 0.85); -fx-background-radius: 15px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0.6, 0, 3);">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            
+            <Label text="🎮 MENU"
+                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white; -fx-effect: dropshadow(gaussian, rgba(52,152,219,0.8), 5, 0.8, 0, 0); -fx-padding: 10px;"/>
+            
+            <Button text="🎲 Mời người lạ ngẫu nhiên"
+                    onAction="#handleRandomInvite"
+                    minWidth="200"
+                    style="-fx-font-size: 14px; -fx-padding: 10px 20px; -fx-background-color: #9b59b6; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: bold;"/>
+            
+            <Button text="🏆 Xem bảng xếp hạng"
+                    onAction="#handleShowLeaderboard"
+                    minWidth="200"
+                    style="-fx-font-size: 14px; -fx-padding: 10px 20px; -fx-background-color: #f39c12; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: bold;"/>
+            
+            <Button text="🔄 Đổi trạng thái"
+                    onAction="#handleToggleStatus"
+                    minWidth="200"
+                    style="-fx-font-size: 14px; -fx-padding: 10px 20px; -fx-background-color: #16a085; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: bold;"/>
+        </VBox>
+    </right>
+</BorderPane>
+

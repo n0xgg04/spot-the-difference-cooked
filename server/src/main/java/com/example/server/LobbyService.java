@@ -1,9 +1,9 @@
 package com.example.server;
 
-import com.example.shared.Message;
-import com.example.shared.Protocol;
-import com.example.shared.models.User;
-import com.example.shared.models.UserStatus;
+import com.ltm.game.shared.Message;
+import com.ltm.game.shared.Protocol;
+import com.ltm.game.shared.models.User;
+import com.ltm.game.shared.models.UserStatus;
 
 import java.util.ArrayList;
 import java.util.List;

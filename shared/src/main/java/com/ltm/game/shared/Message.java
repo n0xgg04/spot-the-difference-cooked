@@ -1,4 +1,4 @@
-package com.example.shared;
+package com.ltm.game.shared;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
@@ -17,7 +17,7 @@ public class Message {
     public Message(String type, Object payload) {
         this.type = type;
         this.payload = payload;
-    }
+        }
 
     public String toJson() {
         return GSON.toJson(this);
@@ -27,3 +27,4 @@ public class Message {
         return GSON.fromJson(json, Message.class);
     }
 }
+

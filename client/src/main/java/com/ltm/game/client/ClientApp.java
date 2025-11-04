@@ -1,0 +1,242 @@
+package com.ltm.game.client;
+
+import com.ltm.game.shared.Message;
+import com.ltm.game.shared.Protocol;
+import com.ltm.game.client.controllers.*;
+import com.ltm.game.client.services.AudioService;
+import com.ltm.game.client.services.NetworkClient;
+import com.ltm.game.client.views.GameView;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+
+import java.util.List;
+import java.util.Map;
+
+public class ClientApp extends Application {
+    private Stage stage;
+    private NetworkClient networkClient;
+    private AudioService audioService;
+    
+    private String username;
+    private int totalPoints;
+    private String currentRoomId;
+    
+    private LoginController loginController;
+    private LobbyController lobbyController;
+    private GameView gameView;
+    private ResultController resultController;
+    private LeaderboardController leaderboardController;
+    
+    private List<Map<String, Object>> pendingLobbyList;
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        this.stage = primaryStage;
+        this.audioService = new AudioService();
+        this.networkClient = new NetworkClient(this::onMessage);
+        networkClient.connect();
+        
+        stage.setTitle("Spot The Difference");
+        
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        stage.setX(screenBounds.getMinX());
+        stage.setY(screenBounds.getMinY());
+        stage.setWidth(screenBounds.getWidth());
+        stage.setHeight(screenBounds.getHeight());
+        
+        showLogin();
+        stage.show();
+    }
+
+    private void showLogin() {
+        try {
+            audioService.stopAll();
+            
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
+            Scene scene = new Scene(loader.load());
+            
+            loginController = loader.getController();
+            loginController.setNetworkClient(networkClient);
+            loginController.setOnLoginSuccess((user, points) -> {
+                this.username = user;
+                this.totalPoints = points;
+                showLobby();
+            });
+            
+            stage.setScene(scene);
+        } catch (Exception e) {
+            System.err.println("Error loading login view: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void showLobby() {
+        try {
+            audioService.stopGameMusic();
+            audioService.playBackgroundMusic();
+            
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/lobby.fxml"));
+            Scene scene = new Scene(loader.load());
+            
+            lobbyController = loader.getController();
+            lobbyController.setNetworkClient(networkClient);
+            lobbyController.setUsername(username);
+            lobbyController.setTotalPoints(totalPoints);
+            
+            lobbyController.setOnLogout(v -> {
+                try {
+                    networkClient.disconnect();
+                } catch (Exception ignored) {}
+                this.networkClient = new NetworkClient(this::onMessage);
+                networkClient.connect();
+                showLogin();
+            });
+            
+            lobbyController.setOnShowLeaderboard(v -> showLeaderboard());
+            
+            stage.setScene(scene);
+            
+            if (pendingLobbyList != null) {
+                lobbyController.updateLobbyList(pendingLobbyList);
+                pendingLobbyList = null;
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading lobby view: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void showGame() {
+        audioService.stopBackgroundMusic();
+        
+        gameView = new GameView((x, y) -> {
+            System.out.println("onClick callback triggered: x=" + x + ", y=" + y + ", currentRoomId=" + currentRoomId);
+            if (currentRoomId != null) {
+                System.out.println("Sending GAME_CLICK to server...");
+                networkClient.send(new Message(Protocol.GAME_CLICK, Map.of("roomId", currentRoomId, "x", x, "y", y)));
+            } else {
+                System.err.println("currentRoomId is null - cannot send click!");
+            }
+        }, username, audioService);
+        
+        stage.setScene(new Scene(gameView.getRoot()));
+    }
+
+    private void showResult(Map<?, ?> payload) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/result.fxml"));
+            Scene scene = new Scene(loader.load());
+            
+            resultController = loader.getController();
+            resultController.setAudioService(audioService);
+            resultController.setOnBackToLobby(v -> showLobby());
+            resultController.setOnShowLeaderboard(v -> showLeaderboard());
+            resultController.setGameResult(payload, username);
+            
+            stage.setScene(scene);
+        } catch (Exception e) {
+            System.err.println("Error loading result view: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void showLeaderboard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/leaderboard.fxml"));
+            Scene scene = new Scene(loader.load());
+            
+            leaderboardController = loader.getController();
+            leaderboardController.setNetworkClient(networkClient);
+            leaderboardController.setOnBack(v -> showLobby());
+            leaderboardController.requestLeaderboardData();
+            
+            stage.setScene(scene);
+        } catch (Exception e) {
+            System.err.println("Error loading leaderboard view: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void onMessage(Message msg) {
+        Platform.runLater(() -> {
+            switch (msg.type) {
+                case Protocol.AUTH_RESULT -> {
+                    if (loginController != null) {
+                        loginController.handleAuthResult((Map<?, ?>) msg.payload);
+                    }
+                }
+                case Protocol.LOBBY_LIST -> {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> list = (List<Map<String, Object>>) msg.payload;
+                    if (lobbyController == null) {
+                        pendingLobbyList = list;
+                    } else {
+                        lobbyController.updateLobbyList(list);
+                    }
+                }
+                case Protocol.INVITE_RECEIVED -> {
+                    String from = String.valueOf(((Map<?, ?>) msg.payload).get("fromUser"));
+                    if (lobbyController != null) {
+                        lobbyController.showInviteDialog(from);
+                    }
+                }
+                case Protocol.INVITE_RESPONSE -> {
+                    boolean accepted = Boolean.parseBoolean(String.valueOf(((Map<?, ?>) msg.payload).get("accepted")));
+                    if (!accepted && lobbyController != null) {
+                        lobbyController.showInviteRejected();
+                    }
+                }
+                case Protocol.GAME_START -> {
+                    Map<?, ?> p = (Map<?, ?>) msg.payload;
+                    currentRoomId = String.valueOf(p.get("roomId"));
+                    showGame();
+                    
+                    try {
+                        String b64L = (String) p.get("imgLeft");
+                        String b64R = (String) p.get("imgRight");
+                        Integer w = p.get("imageWidth") != null ? ((Number) p.get("imageWidth")).intValue() : 0;
+                        Integer h = p.get("imageHeight") != null ? ((Number) p.get("imageHeight")).intValue() : 0;
+                        System.out.println("GAME_START: imgLeft=" + (b64L != null ? b64L.length() : "null") + " chars, imgRight=" + (b64R != null ? b64R.length() : "null") + " chars, w=" + w + ", h=" + h);
+                        byte[] leftBytes = (b64L != null) ? java.util.Base64.getDecoder().decode(b64L) : null;
+                        byte[] rightBytes = (b64R != null) ? java.util.Base64.getDecoder().decode(b64R) : null;
+                        System.out.println("Decoded: leftBytes=" + (leftBytes != null ? leftBytes.length : "null") + " bytes, rightBytes=" + (rightBytes != null ? rightBytes.length : "null") + " bytes");
+                        if (gameView != null) {
+                            gameView.setImages(leftBytes, rightBytes, w, h);
+                            System.out.println("Called gameView.setImages()");
+                        } else {
+                            System.err.println("gameView is null!");
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error decoding images: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+                case Protocol.GAME_UPDATE -> {
+                    if (gameView != null) {
+                        gameView.updateFromPayload((Map<?, ?>) msg.payload);
+                    }
+                }
+                case Protocol.GAME_END -> {
+                    if (gameView != null) {
+                        gameView.updateFromPayload((Map<?, ?>) msg.payload);
+                    }
+                    showResult((Map<?, ?>) msg.payload);
+                }
+                case Protocol.ERROR -> {
+                    String errorMsg = msg.payload != null ? String.valueOf(((Map<?, ?>) msg.payload).get("message")) : "Unknown error";
+                    System.out.println("Error from server: " + errorMsg);
+                }
+            }
+        });
+    }
+}
+
