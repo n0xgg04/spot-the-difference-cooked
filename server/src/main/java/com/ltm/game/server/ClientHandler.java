@@ -55,6 +55,7 @@ public class ClientHandler implements Runnable {
     private void handle(Message msg) {
         switch (msg.type) {
             case Protocol.AUTH_LOGIN -> onLogin(msg);
+            case Protocol.LOBBY_REQUEST -> onLobbyRequest();
             case Protocol.INVITE_SEND -> lobby.onInviteSend(session, (Map<?,?>) msg.payload);
             case Protocol.INVITE_RESPONSE -> gameService.onInviteResponse(session, (Map<?,?>) msg.payload);
             case Protocol.QUEUE_JOIN -> onQueueJoin();
@@ -64,6 +65,12 @@ public class ClientHandler implements Runnable {
             case Protocol.GAME_QUIT -> gameService.onGameQuit(session, (Map<?,?>) msg.payload);
             case Protocol.LEADERBOARD -> onLeaderboard();
             default -> {}
+        }
+    }
+
+    private void onLobbyRequest() {
+        if (session.username != null) {
+            lobby.sendLobbyList(session);
         }
     }
 
