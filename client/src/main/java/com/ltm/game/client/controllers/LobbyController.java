@@ -12,7 +12,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
@@ -110,31 +109,7 @@ public class LobbyController {
                 query.isEmpty() || row.getUsername().toLowerCase().contains(query));
         });
         
-        try {
-            var stream = getClass().getResourceAsStream("/images/avatar_home.png");
-            if (stream == null) {
-                stream = getClass().getResourceAsStream("/images/avatar_home.jpg");
-            }
-            
-            if (stream != null) {
-                Image bgImage = new Image(stream);
-                BackgroundImage bg = new BackgroundImage(
-                    bgImage,
-                    BackgroundRepeat.NO_REPEAT,
-                    BackgroundRepeat.NO_REPEAT,
-                    BackgroundPosition.CENTER,
-                    new BackgroundSize(100, 100, true, true, false, true)
-                );
-                rootPane.setBackground(new Background(bg));
-                System.out.println("✓ Background image loaded successfully!");
-            } else {
-                System.err.println("✗ Could not find background image - using gradient fallback");
-                rootPane.setStyle("-fx-background-color: linear-gradient(to bottom right, #2c3e50, #3498db);");
-            }
-        } catch (Exception e) {
-            System.err.println("✗ Error loading background image: " + e.getMessage());
-            rootPane.setStyle("-fx-background-color: linear-gradient(to bottom right, #2c3e50, #3498db);");
-        }
+        System.out.println("✓ Lobby controller initialized with forest background!");
     }
 
     @FXML
@@ -148,17 +123,20 @@ public class LobbyController {
 
     @FXML
     private void handleRandomInvite() {
+        System.out.println("Random invite clicked");
         var candidates = filteredLobby.filtered(r -> "idle".equalsIgnoreCase(r.getStatus()));
         if (candidates.isEmpty()) {
-            new Alert(Alert.AlertType.INFORMATION, "Không có ai rảnh.").show();
+            showStyledAlert("Thông báo", "Không có người chơi nào đang rảnh.", Alert.AlertType.INFORMATION);
             return;
         }
         LobbyUserRow pick = candidates.get(new Random().nextInt(candidates.size()));
         networkClient.send(new Message(Protocol.INVITE_SEND, Map.of("toUser", pick.getUsername())));
+        showStyledAlert("Đã gửi lời mời", "Đã gửi lời mời đến " + pick.getUsername(), Alert.AlertType.INFORMATION);
     }
 
     @FXML
     private void handleShowLeaderboard() {
+        System.out.println("Leaderboard clicked");
         if (onShowLeaderboard != null) {
             onShowLeaderboard.accept(null);
         }
@@ -166,8 +144,19 @@ public class LobbyController {
 
     @FXML
     private void handleToggleStatus() {
+        System.out.println("Toggle status clicked");
         myStatus = "Rảnh".equals(myStatus) ? "Bận" : "Rảnh";
         updateHeaderUserInfo();
+        showStyledAlert("Trạng thái đã thay đổi", 
+            "Trạng thái hiện tại: " + myStatus, 
+            Alert.AlertType.INFORMATION);
+    }
+    
+    private void showStyledAlert(String title, String message, Alert.AlertType type) {
+        Alert alert = new Alert(type, message);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
     
     @FXML
@@ -177,11 +166,11 @@ public class LobbyController {
             audioService.setMuted(isMuted);
             
             if (isMuted) {
-                muteButton.setText("🔇 Bật âm thanh");
-                muteButton.setStyle("-fx-font-size: 14px; -fx-padding: 10px 20px; -fx-background-color: #95a5a6; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: bold;");
+                muteButton.setText("🔇");
+                muteButton.setStyle("-fx-font-size: 20px; -fx-padding: 10px 15px; -fx-background-color: rgba(149, 165, 166, 0.8); -fx-text-fill: white; -fx-background-radius: 50%; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0.5, 0, 2);");
             } else {
-                muteButton.setText("🔊 Tắt âm thanh");
-                muteButton.setStyle("-fx-font-size: 14px; -fx-padding: 10px 20px; -fx-background-color: #34495e; -fx-text-fill: white; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: bold;");
+                muteButton.setText("🔊");
+                muteButton.setStyle("-fx-font-size: 20px; -fx-padding: 10px 15px; -fx-background-color: rgba(52, 73, 94, 0.8); -fx-text-fill: white; -fx-background-radius: 50%; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0.5, 0, 2);");
             }
         }
     }
