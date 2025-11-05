@@ -10,29 +10,16 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 import java.util.Map;
 
 public class MatchFoundController {
 
     @FXML
-    private Circle outerRing;
+    private Circle spinnerOuter;
 
     @FXML
-    private Circle middleRing;
-
-    @FXML
-    private Circle innerRing;
-
-    @FXML
-    private Label countdownLabel;
-
-    @FXML
-    private Label player1Label;
-
-    @FXML
-    private Label player2Label;
+    private Circle spinnerInner;
 
     @FXML
     private Button acceptButton;
@@ -41,19 +28,65 @@ public class MatchFoundController {
     private Button declineButton;
 
     @FXML
-    private Label warningLabel;
+    private Label countdownLabel;
+
+    @FXML
+    private Label waitingLabel;
 
     private NetworkClient networkClient;
     private String opponentName;
     private String username;
     private Stage dialogStage;
-    private Timeline countdownTimer;
-    private Timeline animationTimeline;
-    private int countdown = 10;
+    private Stage ownerStage;
     private boolean accepted = false;
+    private boolean declined = false;
+    private Timeline countdownTimeline;
+    private RotateTransition spinnerOuterRotation;
+    private RotateTransition spinnerInnerRotation;
+    private int remainingSeconds = 10;
+    private Runnable onAcceptCallback;
 
     public void initialize() {
-        setupAnimations();
+        // Start countdown timer
+        startCountdown();
+        
+        // Start spinner animations
+        startSpinnerAnimations();
+    }
+
+    private void startSpinnerAnimations() {
+        // Outer circle - rotate clockwise
+        spinnerOuterRotation = new RotateTransition(javafx.util.Duration.seconds(3), spinnerOuter);
+        spinnerOuterRotation.setByAngle(360);
+        spinnerOuterRotation.setCycleCount(Animation.INDEFINITE);
+        spinnerOuterRotation.setInterpolator(Interpolator.LINEAR);
+        spinnerOuterRotation.play();
+
+        // Inner circle - rotate counter-clockwise
+        spinnerInnerRotation = new RotateTransition(javafx.util.Duration.seconds(2), spinnerInner);
+        spinnerInnerRotation.setByAngle(-360);
+        spinnerInnerRotation.setCycleCount(Animation.INDEFINITE);
+        spinnerInnerRotation.setInterpolator(Interpolator.LINEAR);
+        spinnerInnerRotation.play();
+    }
+
+    private void startCountdown() {
+        remainingSeconds = 10;
+        countdownLabel.setText(String.valueOf(remainingSeconds));
+
+        countdownTimeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), e -> {
+            remainingSeconds--;
+            countdownLabel.setText(String.valueOf(remainingSeconds));
+
+            if (remainingSeconds <= 0) {
+                // Timeout - auto decline
+                if (!accepted && !declined) {
+                    handleDecline();
+                }
+            }
+        }));
+        countdownTimeline.setCycleCount(10);
+        countdownTimeline.play();
     }
 
     public void setNetworkClient(NetworkClient client) {
@@ -66,8 +99,6 @@ public class MatchFoundController {
 
     public void setOpponentName(String name) {
         this.opponentName = name;
-        player1Label.setText(username != null ? username : "BẠN");
-        player2Label.setText(name);
     }
 
     public void setDialogStage(Stage stage) {
@@ -75,90 +106,57 @@ public class MatchFoundController {
 
         // Close dialog on stage close
         stage.setOnCloseRequest(e -> {
-            if (!accepted) {
+            if (!accepted && !declined) {
                 sendDeclineResponse();
             }
             cleanup();
         });
     }
 
-    public void startCountdown() {
-        countdownTimer = new Timeline(
-            new KeyFrame(Duration.seconds(1), e -> {
-                countdown--;
-                countdownLabel.setText(String.valueOf(countdown));
-
-                // Warning animation when time is low
-                if (countdown <= 3) {
-                    countdownLabel.getStyleClass().add("warning");
-                    warningLabel.setVisible(true);
-                    warningLabel.setManaged(true);
-
-                    // Pulse effect on warning
-                    ScaleTransition pulse = new ScaleTransition(Duration.millis(300), countdownLabel);
-                    pulse.setFromX(1.0);
-                    pulse.setFromY(1.0);
-                    pulse.setToX(1.15);
-                    pulse.setToY(1.15);
-                    pulse.setAutoReverse(true);
-                    pulse.setCycleCount(2);
-                    pulse.play();
+    public void setOwnerStage(Stage ownerStage) {
+        this.ownerStage = ownerStage;
+        
+        // Center dialog when first shown
+        Platform.runLater(() -> centerDialog());
+        
+        // Position tracking - follow game window
+        if (ownerStage != null) {
+            Runnable centerDialog = this::centerDialog;
+            
+            ownerStage.xProperty().addListener((obs, old, newVal) -> centerDialog.run());
+            ownerStage.yProperty().addListener((obs, old, newVal) -> centerDialog.run());
+            ownerStage.widthProperty().addListener((obs, old, newVal) -> centerDialog.run());
+            ownerStage.heightProperty().addListener((obs, old, newVal) -> centerDialog.run());
+            
+            // Focus tracking - z-order control
+            ownerStage.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+                if (dialogStage != null && !dialogStage.isIconified()) {
+                    if (isNowFocused) {
+                        dialogStage.toFront();
+                    } else {
+                        dialogStage.toBack();
+                    }
                 }
-
-                if (countdown <= 0) {
-                    countdownTimer.stop();
-                    autoDecline();
-                }
-            })
-        );
-        countdownTimer.setCycleCount(10);
-        countdownTimer.play();
+            });
+        }
     }
 
-    private void setupAnimations() {
-        // Outer ring rotation (clockwise)
-        RotateTransition outerRotate = new RotateTransition(Duration.seconds(8), outerRing);
-        outerRotate.setByAngle(360);
-        outerRotate.setCycleCount(Animation.INDEFINITE);
-        outerRotate.setInterpolator(Interpolator.LINEAR);
+    public void setOnAcceptCallback(Runnable callback) {
+        this.onAcceptCallback = callback;
+    }
 
-        // Middle ring rotation (counter-clockwise)
-        RotateTransition middleRotate = new RotateTransition(Duration.seconds(6), middleRing);
-        middleRotate.setByAngle(-360);
-        middleRotate.setCycleCount(Animation.INDEFINITE);
-        middleRotate.setInterpolator(Interpolator.LINEAR);
-
-        // Inner ring pulse
-        ScaleTransition innerPulse = new ScaleTransition(Duration.seconds(2), innerRing);
-        innerPulse.setFromX(1.0);
-        innerPulse.setFromY(1.0);
-        innerPulse.setToX(1.1);
-        innerPulse.setToY(1.1);
-        innerPulse.setAutoReverse(true);
-        innerPulse.setCycleCount(Animation.INDEFINITE);
-
-        // Inner ring opacity pulse
-        FadeTransition innerFade = new FadeTransition(Duration.seconds(2), innerRing);
-        innerFade.setFromValue(0.6);
-        innerFade.setToValue(1.0);
-        innerFade.setAutoReverse(true);
-        innerFade.setCycleCount(Animation.INDEFINITE);
-
-        ParallelTransition allAnimations = new ParallelTransition(
-            outerRotate, middleRotate, innerPulse, innerFade
-        );
-        allAnimations.play();
-
-        // Store for cleanup
-        this.animationTimeline = new Timeline();
-        this.animationTimeline.getKeyFrames().add(
-            new KeyFrame(Duration.ZERO, e -> allAnimations.play())
-        );
+    private void centerDialog() {
+        if (dialogStage != null && ownerStage != null && !ownerStage.isIconified()) {
+            double x = ownerStage.getX() + (ownerStage.getWidth() - dialogStage.getWidth()) / 2;
+            double y = ownerStage.getY() + (ownerStage.getHeight() - dialogStage.getHeight()) / 2;
+            dialogStage.setX(x);
+            dialogStage.setY(y);
+        }
     }
 
     @FXML
     private void handleAccept() {
-        if (accepted) {
+        if (accepted || declined) {
             return; // Prevent double-click
         }
 
@@ -166,37 +164,26 @@ public class MatchFoundController {
         acceptButton.setDisable(true);
         declineButton.setDisable(true);
 
-        if (countdownTimer != null) {
-            countdownTimer.stop();
-        }
-
-        // Visual feedback
-        acceptButton.getStyleClass().add("accept-button:pressed");
-
         // Send accept to server
         networkClient.send(new Message(Protocol.MATCH_ACCEPT, Map.of()));
 
-        // Change label to "Waiting for opponent..."
-        countdownLabel.setText("✓");
-        countdownLabel.getStyleClass().remove("warning");
-
-        // Green glow effect
-        ScaleTransition acceptScale = new ScaleTransition(Duration.millis(300), acceptButton);
-        acceptScale.setToX(1.1);
-        acceptScale.setToY(1.1);
-        acceptScale.setAutoReverse(true);
-        acceptScale.setCycleCount(2);
-        acceptScale.play();
-
-        // Don't close dialog yet - wait for server to start game or opponent to decline
+        // Close this dialog and show waiting dialog
+        cleanup();
+        closeDialog();
+        
+        // Trigger callback to show waiting screen
+        if (onAcceptCallback != null) {
+            onAcceptCallback.run();
+        }
     }
 
     @FXML
     private void handleDecline() {
-        if (accepted) {
+        if (accepted || declined) {
             return;
         }
 
+        declined = true;
         sendDeclineResponse();
         closeDialog();
     }
@@ -207,21 +194,6 @@ public class MatchFoundController {
         }
     }
 
-    private void autoDecline() {
-        Platform.runLater(() -> {
-            countdownLabel.setText("HẾT GIỜ");
-            countdownLabel.setStyle("-fx-text-fill: #FF4444;");
-
-            // Auto decline and close after 1 second
-            PauseTransition pause = new PauseTransition(Duration.seconds(1));
-            pause.setOnFinished(e -> {
-                sendDeclineResponse();
-                closeDialog();
-            });
-            pause.play();
-        });
-    }
-
     public void closeDialog() {
         cleanup();
         if (dialogStage != null) {
@@ -230,100 +202,38 @@ public class MatchFoundController {
     }
 
     private void cleanup() {
-        if (countdownTimer != null) {
-            countdownTimer.stop();
+        // Stop countdown timer
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
         }
-        if (animationTimeline != null) {
-            animationTimeline.stop();
+        // Stop spinner animations
+        if (spinnerOuterRotation != null) {
+            spinnerOuterRotation.stop();
+        }
+        if (spinnerInnerRotation != null) {
+            spinnerInnerRotation.stop();
         }
     }
 
     public void onOpponentDeclined(String reason, String decliner) {
         Platform.runLater(() -> {
             cleanup();
-            countdownLabel.setText("✗");
-            countdownLabel.setStyle("-fx-text-fill: #FF4444; -fx-font-size: 48px;");
+            closeDialog();
+        });
+    }
 
-            // Update labels with message
-            if ("timeout".equals(reason)) {
-                player1Label.setText("⏱ TRẬN ĐẤU BỊ HỦY");
-                player2Label.setText("HẾT GIỜ");
-                player1Label.setStyle("-fx-text-fill: #FF6B6B; -fx-font-size: 18px; -fx-font-weight: bold;");
-                player2Label.setStyle("-fx-text-fill: #FF6B6B; -fx-font-size: 18px; -fx-font-weight: bold;");
-            } else if ("disconnect".equals(reason)) {
-                player1Label.setText("🔌 TRẬN ĐẤU BỊ HỦY");
-                player2Label.setText((decliner != null ? decliner.toUpperCase() : "ĐỐI THỦ") + " MẤT KẾT NỐI");
-                player1Label.setStyle("-fx-text-fill: #FF6B6B; -fx-font-size: 18px; -fx-font-weight: bold;");
-                player2Label.setStyle("-fx-text-fill: #FF6B6B; -fx-font-size: 18px; -fx-font-weight: bold;");
-            } else if (decliner != null && !decliner.isEmpty() && !"null".equals(decliner)) {
-                player1Label.setText("❌ TRẬN ĐẤU BỊ HỦY");
-                player2Label.setText(decliner.toUpperCase() + " TỪ CHỐI");
-                player1Label.setStyle("-fx-text-fill: #FF6B6B; -fx-font-size: 18px; -fx-font-weight: bold;");
-                player2Label.setStyle("-fx-text-fill: #FF6B6B; -fx-font-size: 18px; -fx-font-weight: bold;");
-            } else {
-                player1Label.setText("❌ TRẬN ĐẤU");
-                player2Label.setText("BỊ HỦY");
-                player1Label.setStyle("-fx-text-fill: #FF6B6B; -fx-font-size: 18px; -fx-font-weight: bold;");
-                player2Label.setStyle("-fx-text-fill: #FF6B6B; -fx-font-size: 18px; -fx-font-weight: bold;");
-            }
-
-            // Hide buttons
-            acceptButton.setVisible(false);
-            declineButton.setVisible(false);
-
-            PauseTransition pause = new PauseTransition(Duration.seconds(2));
-            pause.setOnFinished(e -> {
-                closeDialog();
-            });
-            pause.play();
+    public void onWaitingForOpponent() {
+        Platform.runLater(() -> {
+            // This is called when opponent also accepted
+            // The waiting message is already shown when user clicks accept
+            waitingLabel.setText("Đang chuẩn bị trận đấu...");
         });
     }
 
     public void onMatchStarting() {
         Platform.runLater(() -> {
             cleanup();
-
-            // Show 10-9-8-7-6-5-4-3-2-1-BẮT ĐẦU countdown
-            final int[] countdownValue = {10};
-
-            Timeline goCountdown = new Timeline(
-                new KeyFrame(Duration.seconds(1), e -> {
-                    if (countdownValue[0] > 0) {
-                        countdownLabel.setText(String.valueOf(countdownValue[0]));
-                        countdownLabel.setStyle("-fx-text-fill: #FFD700; -fx-font-size: 72px; -fx-font-weight: bold;");
-
-                        // Pulse animation
-                        ScaleTransition pulse = new ScaleTransition(Duration.millis(400), countdownLabel);
-                        pulse.setFromX(1.5);
-                        pulse.setFromY(1.5);
-                        pulse.setToX(1.0);
-                        pulse.setToY(1.0);
-                        pulse.play();
-
-                        countdownValue[0]--;
-                    } else {
-                        // Show BẮT ĐẦU!
-                        countdownLabel.setText("BẮT ĐẦU!");
-                        countdownLabel.setStyle("-fx-text-fill: #00FF88; -fx-font-size: 72px; -fx-font-weight: bold;");
-
-                        ScaleTransition goAnimation = new ScaleTransition(Duration.millis(500), countdownLabel);
-                        goAnimation.setFromX(2.0);
-                        goAnimation.setFromY(2.0);
-                        goAnimation.setToX(1.2);
-                        goAnimation.setToY(1.2);
-                        goAnimation.play();
-
-                        // Close after BẮT ĐẦU!
-                        PauseTransition pause = new PauseTransition(Duration.millis(500));
-                        pause.setOnFinished(evt -> {
-                            closeDialog();
-                        });
-                        pause.play();
-                    }
-                })
-            );
-            goCountdown.setCycleCount(11); // 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, BẮT ĐẦU
-            goCountdown.play();
+            closeDialog();
         });
     }
 }

@@ -1,18 +1,24 @@
 package com.ltm.game.client.views;
 
 import com.ltm.game.client.services.AudioService;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.animation.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
 import java.io.ByteArrayInputStream;
@@ -24,9 +30,24 @@ import java.util.function.BiConsumer;
 public class GameView {
     private final StackPane root = new StackPane();
     private final Canvas canvas = new Canvas(900, 450);
-    private final Label scoreLabel = new Label("Score: 0");
-    private final Label timerLabel = new Label("⏱ 15");
-    private final Label turnLabel = new Label("Lượt của bạn");
+    
+    // Player info labels
+    private final Label playerANameLabel = new Label();
+    private final Label playerBNameLabel = new Label();
+    private final Label playerAScoreLabel = new Label("0");
+    private final Label playerBScoreLabel = new Label("0");
+    private final Circle playerAAvatar = new Circle(25);
+    private final Circle playerBAvatar = new Circle(25);
+    
+    // Timer and turn indicator
+    private final Label timerLabel = new Label("15");
+    private final Label turnIndicator = new Label("YOUR TURN");
+    private final StackPane timerBox = new StackPane();
+    
+    // Animated borders for images
+    private final Rectangle leftBorderGlow = new Rectangle();
+    private final Rectangle rightBorderGlow = new Rectangle();
+    private Timeline glowAnimation;
     
     private AudioService audioService;
     private String nextTurn = "";
@@ -45,7 +66,7 @@ public class GameView {
     private Image rightImg;
     private int imgW = 300;
     private int imgH = 300;
-    private final double boxX1 = 50, boxY = 100, boxX2 = 500, boxSize = 350;
+    private final double boxX1 = 50, boxY = 140, boxX2 = 500, boxSize = 350;
 
     public GameView(BiConsumer<Double, Double> onClick, String myUsername, AudioService audioService) {
         this.myUsername = myUsername;
@@ -56,6 +77,7 @@ public class GameView {
             audioService.loadGameSounds();
         }
         
+        // Background with dark gradient overlay
         ImageView bgImageView = new ImageView();
         try {
             Image bgImage = new Image(getClass().getResourceAsStream("/images/v2/forest-8227410.jpg"));
@@ -67,33 +89,43 @@ public class GameView {
             System.err.println("Could not load background image: " + e.getMessage());
         }
         
+        // Dark overlay for better contrast
         Pane overlay = new Pane();
-        overlay.setStyle("-fx-background-color: rgba(20,20,40,0.65);");
+        overlay.setStyle("-fx-background-color: rgba(10,15,25,0.75);");
         overlay.prefWidthProperty().bind(root.widthProperty());
         overlay.prefHeightProperty().bind(root.heightProperty());
         
+        // Main layout
         BorderPane mainLayout = new BorderPane();
         mainLayout.setStyle("-fx-background-color: transparent;");
         
-        HBox topBar = createTopBar();
-        mainLayout.setTop(topBar);
+        // Create Riot-style header
+        VBox header = createRiotStyleHeader();
+        mainLayout.setTop(header);
         
-        VBox centerContainer = new VBox(10);
+        // Center: Canvas with turn indicator
+        VBox centerContainer = new VBox(15);
         centerContainer.setAlignment(Pos.CENTER);
-        centerContainer.setPadding(new Insets(10, 15, 10, 15));
-        centerContainer.getChildren().addAll(canvas, turnLabel);
+        centerContainer.setPadding(new Insets(10, 15, 15, 15));
         
-        turnLabel.setStyle(
-            "-fx-font-size: 18px;" +
+        // Add turn indicator above canvas
+        turnIndicator.setStyle(
+            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-size: 24px;" +
             "-fx-font-weight: bold;" +
-            "-fx-text-fill: #f39c12;" +
-            "-fx-effect: dropshadow(gaussian, rgba(243,156,18,0.8), 6, 0.8, 0, 2);"
+            "-fx-text-fill: #FFFFFF;" +
+            "-fx-padding: 8px 40px;" +
+            "-fx-background-color: linear-gradient(to right, #0ac8b9, #0077d4);" +
+            "-fx-background-radius: 25px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(10,200,185,0.8), 15, 0.7, 0, 0);"
         );
         
+        centerContainer.getChildren().addAll(turnIndicator, canvas);
         mainLayout.setCenter(centerContainer);
         
         root.getChildren().addAll(bgImageView, overlay, mainLayout);
         
+        // Initialize countdown timer
         countdownTimer = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             if (remainingSeconds > 0) {
                 remainingSeconds--;
@@ -102,7 +134,13 @@ public class GameView {
         }));
         countdownTimer.setCycleCount(Timeline.INDEFINITE);
         
+        // Setup animated border glow
+        setupBorderGlowAnimation();
+        
+        // Initial draw
         drawBase();
+        
+        // Canvas click handler
         canvas.setOnMouseClicked(e -> {
             double x = e.getX();
             double y = e.getY();
@@ -132,109 +170,223 @@ public class GameView {
         });
     }
     
-    private HBox createTopBar() {
-        HBox topBar = new HBox(30);
-        topBar.setAlignment(Pos.CENTER);
-        topBar.setPadding(new Insets(15, 20, 15, 20));
-        
-        VBox scoreBox = new VBox(5);
-        scoreBox.setAlignment(Pos.CENTER);
-        scoreBox.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #4facfe, #00f2fe);" +
-            "-fx-background-radius: 20px;" +
-            "-fx-padding: 12px 35px;" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0.7, 0, 4);"
+    private VBox createRiotStyleHeader() {
+        VBox header = new VBox();
+        header.setPadding(new Insets(15, 20, 10, 20));
+        header.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.4));" +
+            "-fx-border-color: rgba(10,200,185,0.3);" +
+            "-fx-border-width: 0 0 2 0;"
         );
         
-        Label scoreIcon = new Label("🎯");
-        scoreIcon.setStyle("-fx-font-size: 32px;");
+        // Top row: Player vs Player with timer in center
+        HBox topRow = new HBox(20);
+        topRow.setAlignment(Pos.CENTER);
+        topRow.setPadding(new Insets(5, 0, 10, 0));
         
-        scoreLabel.setStyle(
-            "-fx-font-size: 22px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: white;" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 3, 0.7, 0, 2);"
-        );
+        // Player A (Left)
+        HBox playerABox = createPlayerBox(playerAAvatar, playerANameLabel, playerAScoreLabel, true);
         
-        HBox scoreContent = new HBox(10);
-        scoreContent.setAlignment(Pos.CENTER);
-        scoreContent.getChildren().addAll(scoreIcon, scoreLabel);
-        scoreBox.getChildren().add(scoreContent);
+        // VS + Timer (Center)
+        VBox centerBox = new VBox(5);
+        centerBox.setAlignment(Pos.CENTER);
         
-        VBox timerBox = new VBox(5);
-        timerBox.setAlignment(Pos.CENTER);
+        // Timer with hexagonal style
+        timerBox.setMinSize(80, 80);
+        timerBox.setMaxSize(80, 80);
         timerBox.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #fa709a, #fee140);" +
-            "-fx-background-radius: 20px;" +
-            "-fx-padding: 12px 30px;" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0.7, 0, 4);"
+            "-fx-background-color: linear-gradient(to bottom right, #1a1a2e, #0f0f1e);" +
+            "-fx-border-color: #0ac8b9;" +
+            "-fx-border-width: 3;" +
+            "-fx-border-radius: 40;" +
+            "-fx-background-radius: 40;" +
+            "-fx-effect: dropshadow(gaussian, rgba(10,200,185,0.6), 20, 0.7, 0, 0);"
         );
         
         timerLabel.setStyle(
-            "-fx-font-size: 24px;" +
+            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-size: 32px;" +
             "-fx-font-weight: bold;" +
-            "-fx-text-fill: white;" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 3, 0.7, 0, 2);"
+            "-fx-text-fill: #0ac8b9;" +
+            "-fx-effect: dropshadow(gaussian, rgba(10,200,185,0.8), 8, 0.7, 0, 0);"
         );
         timerBox.getChildren().add(timerLabel);
         
-        Region spacer1 = new Region();
-        Region spacer2 = new Region();
-        HBox.setHgrow(spacer1, Priority.ALWAYS);
-        HBox.setHgrow(spacer2, Priority.ALWAYS);
+        Label vsLabel = new Label("VS");
+        vsLabel.setStyle(
+            "-fx-font-family: 'Impact', 'Arial Black', sans-serif;" +
+            "-fx-font-size: 20px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: #ff4654;" +
+            "-fx-effect: dropshadow(gaussian, rgba(255,70,84,0.8), 8, 0.7, 0, 0);"
+        );
         
-        topBar.getChildren().addAll(spacer1, scoreBox, timerBox, spacer2);
+        centerBox.getChildren().addAll(timerBox, vsLabel);
         
-        return topBar;
+        // Player B (Right)
+        HBox playerBBox = createPlayerBox(playerBAvatar, playerBNameLabel, playerBScoreLabel, false);
+        
+        Region leftSpacer = new Region();
+        Region rightSpacer = new Region();
+        HBox.setHgrow(leftSpacer, Priority.ALWAYS);
+        HBox.setHgrow(rightSpacer, Priority.ALWAYS);
+        
+        topRow.getChildren().addAll(leftSpacer, playerABox, centerBox, playerBBox, rightSpacer);
+        
+        header.getChildren().add(topRow);
+        
+        return header;
+    }
+    
+    private HBox createPlayerBox(Circle avatar, Label nameLabel, Label scoreLabel, boolean isLeft) {
+        HBox playerBox = new HBox(12);
+        playerBox.setAlignment(isLeft ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
+        playerBox.setPadding(new Insets(8, 15, 8, 15));
+        playerBox.setStyle(
+            "-fx-background-color: linear-gradient(to " + (isLeft ? "right" : "left") + ", rgba(255,255,255,0.08), rgba(255,255,255,0.02));" +
+            "-fx-background-radius: 15px;" +
+            "-fx-border-color: rgba(255,255,255,0.15);" +
+            "-fx-border-radius: 15px;" +
+            "-fx-border-width: 1;"
+        );
+        
+        // Avatar circle with gradient
+        avatar.setFill(new LinearGradient(
+            0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
+            new Stop(0, Color.web("#667eea")),
+            new Stop(1, Color.web("#764ba2"))
+        ));
+        avatar.setStroke(Color.web("#FFFFFF"));
+        avatar.setStrokeWidth(2.5);
+        avatar.setEffect(new DropShadow(15, Color.web("#667eea", 0.6)));
+        
+        // Name label
+        nameLabel.setStyle(
+            "-fx-font-family: 'Arial', sans-serif;" +
+            "-fx-font-size: 16px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: #FFFFFF;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 3, 0.7, 0, 1);"
+        );
+        nameLabel.setText("Player");
+        
+        // Score box
+        StackPane scoreBox = new StackPane();
+        scoreBox.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #f39c12, #e67e22);" +
+            "-fx-background-radius: 12px;" +
+            "-fx-padding: 4px 12px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(230,126,34,0.6), 8, 0.7, 0, 2);"
+        );
+        
+        scoreLabel.setStyle(
+            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-size: 18px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: #FFFFFF;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 2, 0.7, 0, 1);"
+        );
+        scoreBox.getChildren().add(scoreLabel);
+        
+        VBox infoBox = new VBox(3);
+        infoBox.setAlignment(isLeft ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
+        infoBox.getChildren().addAll(nameLabel, scoreBox);
+        
+        if (isLeft) {
+            playerBox.getChildren().addAll(avatar, infoBox);
+        } else {
+            playerBox.getChildren().addAll(infoBox, avatar);
+        }
+        
+        return playerBox;
+    }
+    
+    private void setupBorderGlowAnimation() {
+        // This method will be called to animate borders when it's player's turn
+        // For now, create a simple pulsing effect
+        glowAnimation = new Timeline(
+            new KeyFrame(Duration.ZERO, 
+                new KeyValue(timerBox.scaleXProperty(), 1.0),
+                new KeyValue(timerBox.scaleYProperty(), 1.0)
+            ),
+            new KeyFrame(Duration.seconds(0.5), 
+                new KeyValue(timerBox.scaleXProperty(), 1.08),
+                new KeyValue(timerBox.scaleYProperty(), 1.08)
+            ),
+            new KeyFrame(Duration.seconds(1.0), 
+                new KeyValue(timerBox.scaleXProperty(), 1.0),
+                new KeyValue(timerBox.scaleYProperty(), 1.0)
+            )
+        );
+        glowAnimation.setCycleCount(Animation.INDEFINITE);
     }
 
     private void drawBase() {
         GraphicsContext g = canvas.getGraphicsContext2D();
         
+        // Clear canvas
         g.setFill(Color.TRANSPARENT);
         g.fillRect(0, 0, 900, 450);
         
-        g.setFill(Color.WHITE);
-        g.fillRoundRect(boxX1 - 10, boxY - 10, boxSize + 20, boxSize + 20, 25, 25);
-        g.fillRoundRect(boxX2 - 10, boxY - 10, boxSize + 20, boxSize + 20, 25, 25);
+        // Draw hexagonal-style outer frames with gradient
+        drawHexagonalFrame(g, boxX1, boxY, boxSize);
+        drawHexagonalFrame(g, boxX2, boxY, boxSize);
         
+        // Draw white background for images
+        g.setFill(Color.WHITE);
+        g.fillRoundRect(boxX1, boxY, boxSize, boxSize, 15, 15);
+        g.fillRoundRect(boxX2, boxY, boxSize, boxSize, 15, 15);
+        
+        // Draw images with clipping
         if (leftImg != null) {
             g.save();
-            Rectangle clip1 = new Rectangle(boxX1, boxY, boxSize, boxSize);
-            clip1.setArcWidth(15);
-            clip1.setArcHeight(15);
             g.beginPath();
             g.rect(boxX1, boxY, boxSize, boxSize);
             g.closePath();
             g.clip();
             g.drawImage(leftImg, boxX1, boxY, boxSize, boxSize);
             g.restore();
-        } else { 
-            g.setFill(Color.web("#e8e8e8")); 
+        } else {
+            g.setFill(Color.web("#2c3e50"));
             g.fillRoundRect(boxX1, boxY, boxSize, boxSize, 15, 15);
         }
         
         if (rightImg != null) {
             g.save();
-            Rectangle clip2 = new Rectangle(boxX2, boxY, boxSize, boxSize);
-            clip2.setArcWidth(15);
-            clip2.setArcHeight(15);
             g.beginPath();
             g.rect(boxX2, boxY, boxSize, boxSize);
             g.closePath();
             g.clip();
             g.drawImage(rightImg, boxX2, boxY, boxSize, boxSize);
             g.restore();
-        } else { 
-            g.setFill(Color.web("#e8e8e8")); 
+        } else {
+            g.setFill(Color.web("#2c3e50"));
             g.fillRoundRect(boxX2, boxY, boxSize, boxSize, 15, 15);
         }
         
-        g.setStroke(Color.WHITE);
+        // Inner glow border (Riot-style)
+        g.setStroke(Color.web("#0ac8b9", 0.8));
+        g.setLineWidth(4);
+        g.strokeRoundRect(boxX1 + 2, boxY + 2, boxSize - 4, boxSize - 4, 15, 15);
+        g.strokeRoundRect(boxX2 + 2, boxY + 2, boxSize - 4, boxSize - 4, 15, 15);
+        
+        // Outer border
+        g.setStroke(Color.web("#FFFFFF"));
+        g.setLineWidth(3);
+        g.strokeRoundRect(boxX1, boxY, boxSize, boxSize, 15, 15);
+        g.strokeRoundRect(boxX2, boxY, boxSize, boxSize, 15, 15);
+    }
+    
+    private void drawHexagonalFrame(GraphicsContext g, double x, double y, double size) {
+        // Draw outer glow effect
+        double padding = 12;
+        g.setStroke(Color.web("#0ac8b9", 0.3));
         g.setLineWidth(8);
-        g.strokeRoundRect(boxX1 - 5, boxY - 5, boxSize + 10, boxSize + 10, 20, 20);
-        g.strokeRoundRect(boxX2 - 5, boxY - 5, boxSize + 10, boxSize + 10, 20, 20);
-        g.setLineWidth(1);
+        g.strokeRoundRect(x - padding, y - padding, size + padding * 2, size + padding * 2, 20, 20);
+        
+        g.setStroke(Color.web("#0077d4", 0.2));
+        g.setLineWidth(12);
+        g.strokeRoundRect(x - padding - 4, y - padding - 4, size + padding * 2 + 8, size + padding * 2 + 8, 22, 22);
     }
 
     public void updateFromPayload(Map<?,?> p) {
@@ -308,31 +460,91 @@ public class GameView {
     private void updateTimerDisplay() {
         boolean isMyTurn = nextTurn.equals(myUsername);
         
+        // Update timer
+        timerLabel.setText(String.valueOf(remainingSeconds));
+        
+        // Update turn indicator
         if (isMyTurn) {
-            turnLabel.setText("Lượt của bạn");
-            turnLabel.setStyle(
+            turnIndicator.setText("⚡ YOUR TURN ⚡");
+            turnIndicator.setStyle(
+                "-fx-font-family: 'Arial Black', sans-serif;" +
+                "-fx-font-size: 24px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #FFFFFF;" +
+                "-fx-padding: 8px 40px;" +
+                "-fx-background-color: linear-gradient(to right, #0ac8b9, #0077d4);" +
+                "-fx-background-radius: 25px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(10,200,185,0.9), 20, 0.8, 0, 0);"
+            );
+            
+            // Start glow animation
+            if (glowAnimation != null && glowAnimation.getStatus() != Animation.Status.RUNNING) {
+                glowAnimation.play();
+            }
+        } else {
+            turnIndicator.setText("⏳ OPPONENT'S TURN");
+            turnIndicator.setStyle(
+                "-fx-font-family: 'Arial', sans-serif;" +
                 "-fx-font-size: 20px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-text-fill: #f39c12;" +
-                "-fx-effect: dropshadow(gaussian, rgba(243,156,18,0.8), 6, 0.8, 0, 2);"
+                "-fx-text-fill: #95a5a6;" +
+                "-fx-padding: 8px 40px;" +
+                "-fx-background-color: rgba(255,255,255,0.1);" +
+                "-fx-background-radius: 25px;" +
+                "-fx-border-color: rgba(149,165,166,0.3);" +
+                "-fx-border-radius: 25px;" +
+                "-fx-border-width: 2;"
             );
-        } else {
-            turnLabel.setText("⏳ Đợi đối thủ...");
-            turnLabel.setStyle(
-                "-fx-font-size: 18px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-text-fill: #bdc3c7;" +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 4, 0.7, 0, 2);"
-            );
+            
+            // Stop glow animation
+            if (glowAnimation != null) {
+                glowAnimation.stop();
+                timerBox.setScaleX(1.0);
+                timerBox.setScaleY(1.0);
+            }
         }
         
-        timerLabel.setText(String.format("⏱ %d", remainingSeconds));
+        // Warning state for low time
+        if (remainingSeconds <= 5 && isMyTurn) {
+            timerBox.setStyle(
+                "-fx-background-color: linear-gradient(to bottom right, #ff4654, #c0392b);" +
+                "-fx-border-color: #ff4654;" +
+                "-fx-border-width: 3;" +
+                "-fx-border-radius: 40;" +
+                "-fx-background-radius: 40;" +
+                "-fx-effect: dropshadow(gaussian, rgba(255,70,84,0.9), 25, 0.8, 0, 0);"
+            );
+            timerLabel.setStyle(
+                "-fx-font-family: 'Arial Black', sans-serif;" +
+                "-fx-font-size: 32px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #FFFFFF;" +
+                "-fx-effect: dropshadow(gaussian, rgba(255,255,255,0.8), 8, 0.7, 0, 0);"
+            );
+        } else {
+            timerBox.setStyle(
+                "-fx-background-color: linear-gradient(to bottom right, #1a1a2e, #0f0f1e);" +
+                "-fx-border-color: #0ac8b9;" +
+                "-fx-border-width: 3;" +
+                "-fx-border-radius: 40;" +
+                "-fx-background-radius: 40;" +
+                "-fx-effect: dropshadow(gaussian, rgba(10,200,185,0.6), 20, 0.7, 0, 0);"
+            );
+            timerLabel.setStyle(
+                "-fx-font-family: 'Arial Black', sans-serif;" +
+                "-fx-font-size: 32px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #0ac8b9;" +
+                "-fx-effect: dropshadow(gaussian, rgba(10,200,185,0.8), 8, 0.7, 0, 0);"
+            );
+        }
     }
 
     private void render() {
         drawBase();
         GraphicsContext g = canvas.getGraphicsContext2D();
         
+        // Draw found differences with Riot-style effects
         for (Map<String,Object> d : found) {
             double x = ((Number)d.get("x")).doubleValue();
             double y = ((Number)d.get("y")).doubleValue();
@@ -343,58 +555,110 @@ public class GameView {
             
             String finder = d.get("finder") != null ? String.valueOf(d.get("finder")) : "";
             Color circleColor;
+            Color glowColor;
+            
             if (finder.equals(myUsername)) {
-                circleColor = Color.web("#00ff88");
+                circleColor = Color.web("#0ac8b9"); // Cyan for player
+                glowColor = Color.web("#0ac8b9", 0.4);
             } else if (finder.equals(playerA) || finder.equals(playerB)) {
-                circleColor = Color.web("#ff3838");
+                circleColor = Color.web("#ff4654"); // Red for opponent
+                glowColor = Color.web("#ff4654", 0.4);
             } else {
-                circleColor = Color.ORANGE;
+                circleColor = Color.web("#f39c12"); // Orange for others
+                glowColor = Color.web("#f39c12", 0.4);
             }
             
-            g.setStroke(circleColor.deriveColor(0, 1, 1, 0.15));
-            g.setLineWidth(14);
-            g.strokeOval(boxX1 + sx - rr - 5, boxY + sy - rr - 5, rr*2 + 10, rr*2 + 10);
-            g.strokeOval(boxX2 + sx - rr - 5, boxY + sy - rr - 5, rr*2 + 10, rr*2 + 10);
+            // Outer glow (largest)
+            g.setStroke(glowColor.deriveColor(0, 1, 1, 0.1));
+            g.setLineWidth(20);
+            g.strokeOval(boxX1 + sx - rr - 8, boxY + sy - rr - 8, rr*2 + 16, rr*2 + 16);
+            g.strokeOval(boxX2 + sx - rr - 8, boxY + sy - rr - 8, rr*2 + 16, rr*2 + 16);
             
-            g.setStroke(circleColor.deriveColor(0, 1, 1, 0.4));
-            g.setLineWidth(8);
-            g.strokeOval(boxX1 + sx - rr - 2, boxY + sy - rr - 2, rr*2 + 4, rr*2 + 4);
-            g.strokeOval(boxX2 + sx - rr - 2, boxY + sy - rr - 2, rr*2 + 4, rr*2 + 4);
+            // Middle glow
+            g.setStroke(glowColor.deriveColor(0, 1, 1, 0.3));
+            g.setLineWidth(12);
+            g.strokeOval(boxX1 + sx - rr - 4, boxY + sy - rr - 4, rr*2 + 8, rr*2 + 8);
+            g.strokeOval(boxX2 + sx - rr - 4, boxY + sy - rr - 4, rr*2 + 8, rr*2 + 8);
             
+            // Inner glow
+            g.setStroke(circleColor.deriveColor(0, 1, 1.2, 0.6));
+            g.setLineWidth(7);
+            g.strokeOval(boxX1 + sx - rr - 1, boxY + sy - rr - 1, rr*2 + 2, rr*2 + 2);
+            g.strokeOval(boxX2 + sx - rr - 1, boxY + sy - rr - 1, rr*2 + 2, rr*2 + 2);
+            
+            // Main circle (bright)
             g.setStroke(circleColor);
-            g.setLineWidth(5);
+            g.setLineWidth(4);
             g.strokeOval(boxX1 + sx - rr, boxY + sy - rr, rr*2, rr*2);
             g.strokeOval(boxX2 + sx - rr, boxY + sy - rr, rr*2, rr*2);
-            g.setLineWidth(1);
         }
         
+        // Draw click indicator (skill-shot style)
         if (lastClickX != null && lastClickY != null) {
             double sx = lastClickX * (boxSize / imgW);
             double sy = lastClickY * (boxSize / imgH);
-            g.setStroke(Color.YELLOW);
+            
+            // Outer glow
+            g.setStroke(Color.web("#f39c12", 0.3));
+            g.setLineWidth(8);
+            double crossSize = 18;
+            g.strokeLine(boxX1 + sx - crossSize, boxY + sy, boxX1 + sx + crossSize, boxY + sy);
+            g.strokeLine(boxX1 + sx, boxY + sy - crossSize, boxX1 + sx, boxY + sy + crossSize);
+            g.strokeLine(boxX2 + sx - crossSize, boxY + sy, boxX2 + sx + crossSize, boxY + sy);
+            g.strokeLine(boxX2 + sx, boxY + sy - crossSize, boxX2 + sx, boxY + sy + crossSize);
+            
+            // Main crosshair
+            g.setStroke(Color.web("#f39c12"));
             g.setLineWidth(3);
-            double crossSize = 12;
-            g.strokeLine(boxX1 + sx - crossSize, boxY + sy - crossSize, boxX1 + sx + crossSize, boxY + sy + crossSize);
-            g.strokeLine(boxX1 + sx + crossSize, boxY + sy - crossSize, boxX1 + sx - crossSize, boxY + sy + crossSize);
-            g.strokeLine(boxX2 + sx - crossSize, boxY + sy - crossSize, boxX2 + sx + crossSize, boxY + sy + crossSize);
-            g.strokeLine(boxX2 + sx + crossSize, boxY + sy - crossSize, boxX2 + sx - crossSize, boxY + sy + crossSize);
-            g.setLineWidth(1);
+            crossSize = 15;
+            g.strokeLine(boxX1 + sx - crossSize, boxY + sy, boxX1 + sx + crossSize, boxY + sy);
+            g.strokeLine(boxX1 + sx, boxY + sy - crossSize, boxX1 + sx, boxY + sy + crossSize);
+            g.strokeLine(boxX2 + sx - crossSize, boxY + sy, boxX2 + sx + crossSize, boxY + sy);
+            g.strokeLine(boxX2 + sx, boxY + sy - crossSize, boxX2 + sx, boxY + sy + crossSize);
+            
+            // Center dot
+            g.setFill(Color.web("#FFFFFF"));
+            g.fillOval(boxX1 + sx - 3, boxY + sy - 3, 6, 6);
+            g.fillOval(boxX2 + sx - 3, boxY + sy - 3, 6, 6);
         }
         
-        String myScore = "", opponentScore = "";
+        // Update player names and scores
+        updatePlayerInfo();
+    }
+    
+    private void updatePlayerInfo() {
+        // Update player names
+        if (!playerA.isEmpty()) {
+            playerANameLabel.setText(playerA.equals(myUsername) ? playerA + " (YOU)" : playerA);
+        }
+        if (!playerB.isEmpty()) {
+            playerBNameLabel.setText(playerB.equals(myUsername) ? playerB + " (YOU)" : playerB);
+        }
+        
+        // Update scores
+        playerAScoreLabel.setText(String.valueOf(scoreA));
+        playerBScoreLabel.setText(String.valueOf(scoreB));
+        
+        // Highlight current player's box
         if (playerA.equals(myUsername)) {
-            myScore = String.valueOf(scoreA);
-            opponentScore = String.valueOf(scoreB);
+            styleActivePlayer(playerAAvatar, true);
+            styleActivePlayer(playerBAvatar, false);
         } else if (playerB.equals(myUsername)) {
-            myScore = String.valueOf(scoreB);
-            opponentScore = String.valueOf(scoreA);
-        } else {
-            myScore = "0";
-            opponentScore = "0";
+            styleActivePlayer(playerAAvatar, false);
+            styleActivePlayer(playerBAvatar, true);
         }
-        
-        String scoreText = String.format("%s | %s", myScore, opponentScore);
-        scoreLabel.setText(scoreText);
+    }
+    
+    private void styleActivePlayer(Circle avatar, boolean isActive) {
+        if (isActive) {
+            avatar.setEffect(new DropShadow(20, Color.web("#0ac8b9", 0.8)));
+            avatar.setStrokeWidth(3);
+            avatar.setStroke(Color.web("#0ac8b9"));
+        } else {
+            avatar.setEffect(new DropShadow(15, Color.web("#667eea", 0.6)));
+            avatar.setStrokeWidth(2.5);
+            avatar.setStroke(Color.web("#FFFFFF"));
+        }
     }
 
     public StackPane getRoot() { 

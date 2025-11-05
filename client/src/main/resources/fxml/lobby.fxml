@@ -210,15 +210,12 @@
                                      -fx-padding: 15px 25px;
                                      -fx-cursor: hand;
                                      -fx-effect: dropshadow(gaussian, rgba(200, 170, 110, 0.8), 15, 0.6, 0, 4);">
-                            <Label text="🏆 1VS1 RANKED"
+                            <Label text="TÌM TRẬN"
                                    style="-fx-font-size: 20px; 
                                           -fx-font-weight: 900; 
                                           -fx-text-fill: #F0E6D2;
                                           -fx-letter-spacing: 2px;
                                           -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 3, 1, 0, 2);"/>
-                            <Label text="Xếp hạng"
-                                   style="-fx-font-size: 12px; 
-                                          -fx-text-fill: rgba(240,230,210,0.8);"/>
                         </VBox>
                     </HBox>
                 </bottom>

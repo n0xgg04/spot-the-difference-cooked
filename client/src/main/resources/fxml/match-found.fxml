@@ -79,6 +79,10 @@
             <Button fx:id="declineButton" text="✗ TỪ CHỐI" styleClass="decline-button" onAction="#handleDecline"/>
         </HBox>
 
+        <!-- Waiting Message -->
+        <Label fx:id="waitingLabel" text="Đợi người chơi khác..." 
+               styleClass="waiting-text" managed="false" visible="false"/>
+
         <!-- Warning Text -->
         <Label fx:id="warningLabel" text="Từ chối có thể dẫn đến hạn chế tìm trận tạm thời"
                styleClass="warning-text" managed="false" visible="false"/>

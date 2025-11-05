@@ -320,19 +320,36 @@ public class LobbyController {
         
         try {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
-                getClass().getResource("/fxml/queue-dialog.fxml")
+                getClass().getResource("/fxml/queue-dialog-lol.fxml")
             );
             javafx.scene.Parent root = loader.load();
             
             queueTimerLabel = (Label) root.lookup("#queueTimerLabel");
+            Label titleLabel = (Label) root.lookup("#titleLabel");
             Button cancelButton = (Button) root.lookup("#cancelQueueButton");
+            VBox cancelButtonContainer = (VBox) root.lookup("#cancelButtonContainer");
+            VBox actionButtons = (VBox) root.lookup("#actionButtons");
+            
+            // Set initial state: Searching
+            if (titleLabel != null) {
+                titleLabel.setText("ĐANG TÌM TRẬN");
+            }
+            if (queueTimerLabel != null) {
+                queueTimerLabel.setText("Đang tìm đối thủ...");
+            }
+            
+            // Get circle nodes for animation
+            javafx.scene.shape.Circle outerRing = (javafx.scene.shape.Circle) root.lookup("#outerRing");
+            javafx.scene.shape.Circle innerRing = (javafx.scene.shape.Circle) root.lookup("#innerRing");
             
             if (cancelButton != null) {
                 cancelButton.setOnAction(e -> leaveQueue());
             }
             
             queueDialog = new Stage();
-            queueDialog.initModality(Modality.APPLICATION_MODAL);
+            Stage ownerStage = (Stage) rootPane.getScene().getWindow();
+            // DON'T use initOwner - it creates dependency that blocks interaction
+            // queueDialog.initOwner(ownerStage); 
             queueDialog.setTitle("Đang tìm trận");
             queueDialog.setResizable(false);
             queueDialog.initStyle(javafx.stage.StageStyle.TRANSPARENT);
@@ -344,14 +361,76 @@ public class LobbyController {
             Scene dialogScene = new Scene(root);
             dialogScene.setFill(Color.TRANSPARENT);
             dialogScene.getStylesheets().add(
-                getClass().getResource("/styles/queue-dialog.css").toExternalForm()
+                getClass().getResource("/styles/queue-dialog-lol.css").toExternalForm()
             );
             queueDialog.setScene(dialogScene);
             
+            // Start rotation animations for circles
+            if (outerRing != null) {
+                javafx.animation.RotateTransition rotateOuter = new javafx.animation.RotateTransition(javafx.util.Duration.seconds(8), outerRing);
+                rotateOuter.setFromAngle(0);
+                rotateOuter.setToAngle(360);
+                rotateOuter.setCycleCount(javafx.animation.Animation.INDEFINITE);
+                rotateOuter.setInterpolator(javafx.animation.Interpolator.LINEAR);
+                rotateOuter.play();
+            }
+            
+            if (innerRing != null) {
+                javafx.animation.RotateTransition rotateInner = new javafx.animation.RotateTransition(javafx.util.Duration.seconds(6), innerRing);
+                rotateInner.setFromAngle(360);
+                rotateInner.setToAngle(0);
+                rotateInner.setCycleCount(javafx.animation.Animation.INDEFINITE);
+                rotateInner.setInterpolator(javafx.animation.Interpolator.LINEAR);
+                rotateInner.play();
+            }
+            
             startQueueTimer();
-            startQueueAnimations(root);
             
             queueDialog.show();
+            
+            // Hàm để căn giữa dialog
+            Runnable centerDialog = () -> {
+                if (queueDialog != null && queueDialog.isShowing()) {
+                    queueDialog.setX(ownerStage.getX() + (ownerStage.getWidth() - queueDialog.getWidth()) / 2);
+                    queueDialog.setY(ownerStage.getY() + (ownerStage.getHeight() - queueDialog.getHeight()) / 2);
+                }
+            };
+            
+            // Căn giữa dialog ban đầu
+            centerDialog.run();
+            
+            // Listener để dialog tự động di chuyển theo cửa sổ game
+            ownerStage.xProperty().addListener((obs, oldVal, newVal) -> {
+                if (queueDialog != null && queueDialog.isShowing()) {
+                    centerDialog.run();
+                }
+            });
+            ownerStage.yProperty().addListener((obs, oldVal, newVal) -> {
+                if (queueDialog != null && queueDialog.isShowing()) {
+                    centerDialog.run();
+                }
+            });
+            ownerStage.widthProperty().addListener((obs, oldVal, newVal) -> {
+                if (queueDialog != null && queueDialog.isShowing()) {
+                    centerDialog.run();
+                }
+            });
+            ownerStage.heightProperty().addListener((obs, oldVal, newVal) -> {
+                if (queueDialog != null && queueDialog.isShowing()) {
+                    centerDialog.run();
+                }
+            });
+            
+            // Listener để điều khiển z-order khi game window thay đổi focus
+            ownerStage.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+                if (queueDialog != null && queueDialog.isShowing()) {
+                    if (isNowFocused) {
+                        queueDialog.toFront(); // Đưa lên trước khi game được focus
+                    } else {
+                        queueDialog.toBack(); // Đẩy xuống sau khi game mất focus
+                    }
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
             showStyledAlert("Lỗi", "Không thể hiển thị hàng chờ: " + e.getMessage(), 
@@ -465,6 +544,8 @@ public class LobbyController {
     
     private Stage matchFoundDialog;
     private MatchFoundController matchFoundController;
+    private Stage matchWaitingDialog;
+    private MatchWaitingController matchWaitingController;
 
     public void onQueueMatched(String opponent) {
         if (queueTimer != null) {
@@ -488,7 +569,7 @@ public class LobbyController {
 
         try {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
-                getClass().getResource("/fxml/match-found.fxml")
+                getClass().getResource("/fxml/match-found-lol.fxml")
             );
             javafx.scene.Parent root = loader.load();
 
@@ -498,8 +579,8 @@ public class LobbyController {
             matchFoundController.setOpponentName(opponent);
 
             matchFoundDialog = new Stage();
-            matchFoundDialog.initModality(Modality.APPLICATION_MODAL);
-            matchFoundDialog.setTitle("Match Found");
+            // No initOwner - independent Stage for full window control
+            matchFoundDialog.setTitle("Tìm Thấy Trận");
             matchFoundDialog.setResizable(false);
             matchFoundDialog.initStyle(javafx.stage.StageStyle.TRANSPARENT);
             matchFoundDialog.setOnCloseRequest(e -> {
@@ -507,15 +588,17 @@ public class LobbyController {
             });
 
             matchFoundController.setDialogStage(matchFoundDialog);
+            matchFoundController.setOwnerStage((Stage) rootPane.getScene().getWindow());
+            
+            // Set callback to show waiting dialog when user accepts
+            matchFoundController.setOnAcceptCallback(() -> showMatchWaitingDialog(opponent));
 
             Scene dialogScene = new Scene(root);
             dialogScene.setFill(Color.TRANSPARENT);
             dialogScene.getStylesheets().add(
-                getClass().getResource("/styles/match-found-dialog.css").toExternalForm()
+                getClass().getResource("/styles/match-found-lol.css").toExternalForm()
             );
             matchFoundDialog.setScene(dialogScene);
-
-            matchFoundController.startCountdown();
 
             matchFoundDialog.show();
         } catch (Exception e) {
@@ -525,10 +608,68 @@ public class LobbyController {
         }
     }
 
+    private void showMatchWaitingDialog(String opponent) {
+        if (matchWaitingDialog != null && matchWaitingDialog.isShowing()) {
+            return;
+        }
+
+        // Stop lobby music when entering waiting screen
+        if (audioService != null) {
+            audioService.stopBackgroundMusic();
+        }
+
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                getClass().getResource("/fxml/match-waiting.fxml")
+            );
+            javafx.scene.Parent root = loader.load();
+
+            matchWaitingController = loader.getController();
+            matchWaitingController.setNetworkClient(networkClient);
+            matchWaitingController.setAudioService(audioService);
+            matchWaitingController.setOpponentName(opponent);
+
+            matchWaitingDialog = new Stage();
+            matchWaitingDialog.setTitle("Đang chờ...");
+            matchWaitingDialog.setResizable(false);
+            matchWaitingDialog.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+            matchWaitingDialog.setOnCloseRequest(e -> {
+                e.consume();
+            });
+
+            matchWaitingController.setDialogStage(matchWaitingDialog);
+            matchWaitingController.setOwnerStage((Stage) rootPane.getScene().getWindow());
+
+            Scene dialogScene = new Scene(root);
+            dialogScene.setFill(Color.TRANSPARENT);
+            dialogScene.getStylesheets().add(
+                getClass().getResource("/styles/match-waiting.css").toExternalForm()
+            );
+            matchWaitingDialog.setScene(dialogScene);
+
+            matchWaitingDialog.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showStyledAlert("Lỗi", "Không thể hiển thị Match Waiting dialog: " + e.getMessage(),
+                Alert.AlertType.ERROR);
+        }
+    }
+
     public void onMatchReady() {
         javafx.application.Platform.runLater(() -> {
+            if (matchWaitingController != null) {
+                matchWaitingController.onMatchReady();
+            }
             if (matchFoundController != null) {
                 matchFoundController.onMatchStarting();
+            }
+        });
+    }
+
+    public void onMatchWaiting() {
+        javafx.application.Platform.runLater(() -> {
+            if (matchWaitingController != null) {
+                matchWaitingController.onOpponentAccepted();
             }
         });
     }
@@ -538,23 +679,47 @@ public class LobbyController {
             String reason = payload != null ? String.valueOf(payload.get("reason")) : "";
             String decliner = payload != null ? String.valueOf(payload.get("decliner")) : "";
 
+            // Resume lobby music
+            if (audioService != null) {
+                audioService.playLobbyMusic();
+            }
+
+            // Close waiting dialog if open
+            if (matchWaitingController != null) {
+                matchWaitingController.onMatchDeclined(reason);
+                matchWaitingController = null;
+            }
+            if (matchWaitingDialog != null && matchWaitingDialog.isShowing()) {
+                matchWaitingDialog.close();
+                matchWaitingDialog = null;
+            }
+
+            // Close match found dialog if open
             if (matchFoundController != null) {
                 matchFoundController.onOpponentDeclined(reason, decliner);
             } else {
-                String message = "Match cancelled";
+                String message = "Trận đấu đã bị hủy";
                 if ("timeout".equals(reason)) {
-                    message = "⏱ Match cancelled - No one accepted in time";
+                    message = "⏱ Trận đấu bị hủy - Không ai chấp nhận trong thời gian quy định";
                 } else if (decliner != null && !decliner.isEmpty() && !"null".equals(decliner)) {
-                    message = "❌ " + decliner + " declined the match";
+                    message = "❌ " + decliner + " đã từ chối trận đấu";
                 }
 
-                showStyledAlert("Match Cancelled", message, Alert.AlertType.WARNING);
+                showStyledAlert("Trận đấu bị hủy", message, Alert.AlertType.WARNING);
             }
         });
     }
 
     public void ensureMatchDialogClosed() {
         javafx.application.Platform.runLater(() -> {
+            if (matchWaitingController != null) {
+                matchWaitingController.closeDialog();
+                matchWaitingController = null;
+            }
+            if (matchWaitingDialog != null && matchWaitingDialog.isShowing()) {
+                matchWaitingDialog.close();
+                matchWaitingDialog = null;
+            }
             if (matchFoundController != null) {
                 matchFoundController.closeDialog();
                 matchFoundController = null;
@@ -621,6 +786,7 @@ public class LobbyController {
 
     public void showInviteDialog(String fromUser) {
         Stage inviteDialog = new Stage();
+        inviteDialog.initOwner(rootPane.getScene().getWindow()); // Gắn dialog vào cửa sổ game
         inviteDialog.initModality(Modality.APPLICATION_MODAL);
         inviteDialog.setTitle("Lời mời thi đấu");
         inviteDialog.setResizable(false);
@@ -753,6 +919,7 @@ public class LobbyController {
 
     public void showInviteRejected() {
         Stage notifyDialog = new Stage();
+        notifyDialog.initOwner(rootPane.getScene().getWindow()); // Gắn dialog vào cửa sổ game
         notifyDialog.initModality(Modality.APPLICATION_MODAL);
         notifyDialog.setTitle("Thông báo");
         notifyDialog.setResizable(false);

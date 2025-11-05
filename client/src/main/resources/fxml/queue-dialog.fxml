@@ -6,12 +6,13 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 
 <StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-           styleClass="queue-dialog-root">
+           styleClass="queue-dialog-root" prefWidth="500" prefHeight="600">
 
-    <!-- Hextech Background Pattern -->
-    <StackPane styleClass="hextech-background"/>
+    <!-- Gradient Background -->
+    <StackPane styleClass="gradient-background"/>
 
     <!-- Main Content -->
     <VBox alignment="CENTER" spacing="20" styleClass="queue-dialog-container">

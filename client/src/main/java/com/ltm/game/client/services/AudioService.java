@@ -8,6 +8,7 @@ public class AudioService {
     private AudioClip correctSound;
     private AudioClip wrongSound;
     private AudioClip celebrationSound;
+    private AudioClip countdownSound;
     
     private boolean isMuted = false;
     private double savedBackgroundVolume = 0.3;
@@ -78,19 +79,19 @@ public class AudioService {
 
     public void loadGameSounds() {
         try {
-            String correctPath = getClass().getResource("/sounds/ye_đoan_dung_roi.mp3").toExternalForm();
+            String correctPath = getClass().getResource("/sounds/Ping sound effect.mp3").toExternalForm();
             correctSound = new AudioClip(correctPath);
-            correctSound.setVolume(0.6);
+            correctSound.setVolume(0.7);
         } catch (Exception e) {
-            // Error loading correct sound
+            System.err.println("Error loading correct sound: " + e.getMessage());
         }
 
         try {
-            String wrongPath = getClass().getResource("/sounds/phai_chiu.mp3").toExternalForm();
+            String wrongPath = getClass().getResource("/sounds/Missing ping Lol.mp3").toExternalForm();
             wrongSound = new AudioClip(wrongPath);
-            wrongSound.setVolume(0.5);
+            wrongSound.setVolume(0.6);
         } catch (Exception e) {
-            // Error loading wrong sound
+            System.err.println("Error loading wrong sound: " + e.getMessage());
         }
     }
 
@@ -126,9 +127,31 @@ public class AudioService {
         }
     }
 
+    public void playCountdownSound() {
+        stopCountdownSound();
+        if (isMuted) {
+            return;
+        }
+        try {
+            String soundPath = getClass().getResource("/sounds/Countdown Timer.mp3").toExternalForm();
+            countdownSound = new AudioClip(soundPath);
+            countdownSound.setVolume(0.7);
+            countdownSound.play();
+        } catch (Exception e) {
+            System.err.println("Error playing countdown sound: " + e.getMessage());
+        }
+    }
+
+    public void stopCountdownSound() {
+        if (countdownSound != null) {
+            countdownSound.stop();
+        }
+    }
+
     public void stopAll() {
         stopBackgroundMusic();
         stopGameMusic();
+        stopCountdownSound();
     }
     
     public void setMuted(boolean muted) {

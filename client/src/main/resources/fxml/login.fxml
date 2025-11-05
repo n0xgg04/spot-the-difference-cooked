@@ -107,7 +107,7 @@
         <Region minHeight="5"/>
         
         <!-- Login Button - Riot Gold Style -->
-        <Button text="⚔️ ĐĂNG NHẬP ⚔️"
+        <Button text="ĐĂNG NHẬP"
                 onAction="#handleLogin"
                 maxWidth="380"
                 styleClass="login-button"

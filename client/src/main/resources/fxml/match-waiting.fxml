@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Rectangle?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.ltm.game.client.controllers.MatchWaitingController"
+           styleClass="waiting-root" prefWidth="700" prefHeight="450">
+
+    <VBox alignment="CENTER" spacing="35">
+        <padding>
+            <Insets top="50" right="50" bottom="50" left="50"/>
+        </padding>
+
+        <!-- Title -->
+        <Label text="Đang chờ người chơi khác..." styleClass="waiting-title"/>
+
+        <!-- Large Countdown Timer with Spinner -->
+        <StackPane prefWidth="200" prefHeight="200" styleClass="countdown-container">
+            <!-- Outer spinning circle -->
+            <Circle fx:id="spinnerOuter" radius="100" styleClass="spinner-outer"/>
+            
+            <!-- Middle spinning circle -->
+            <Circle radius="85" styleClass="spinner-middle"/>
+            
+            <!-- Inner spinning circle -->
+            <Circle fx:id="spinnerInner" radius="70" styleClass="spinner-inner"/>
+            
+            <!-- Center countdown with pulse effect -->
+            <VBox alignment="CENTER" spacing="5">
+                <Label fx:id="countdownLabel" text="10" styleClass="countdown-huge"/>
+                <Label text="GIÂY" styleClass="countdown-label"/>
+            </VBox>
+        </StackPane>
+
+        <!-- Player Avatars -->
+        <HBox alignment="CENTER" spacing="30" styleClass="players-container">
+            <VBox alignment="CENTER" spacing="10">
+                <StackPane>
+                    <Rectangle width="50" height="50" arcWidth="10" arcHeight="10" styleClass="player-avatar-bg"/>
+                    <Rectangle width="45" height="45" arcWidth="8" arcHeight="8" styleClass="player-avatar player-ready"/>
+                </StackPane>
+                <Label text="BẠN" styleClass="player-label player-label-ready"/>
+                <Label text="✓ Sẵn sàng" styleClass="player-status player-status-ready"/>
+            </VBox>
+            
+            <Label text="VS" styleClass="vs-label-big"/>
+            
+            <VBox alignment="CENTER" spacing="10">
+                <StackPane>
+                    <Rectangle width="50" height="50" arcWidth="10" arcHeight="10" styleClass="player-avatar-bg"/>
+                    <Rectangle width="45" height="45" arcWidth="8" arcHeight="8" styleClass="player-avatar player-waiting"/>
+                </StackPane>
+                <Label fx:id="opponentLabel" text="ĐỐI THỦ" styleClass="player-label"/>
+                <Label fx:id="statusLabel" text="⏳ Đang chờ..." styleClass="player-status player-status-waiting"/>
+            </VBox>
+        </HBox>
+
+    </VBox>
+
+</StackPane>

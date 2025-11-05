@@ -1,0 +1,146 @@
+/* ====================================
+   WAITING FOR PLAYERS STYLE - EPIC
+   ==================================== */
+
+/* Root Container */
+.waiting-root {
+    -fx-background-color: linear-gradient(to bottom, #0a1428, #091428);
+    -fx-background-radius: 20px;
+    -fx-border-color: #1e2328;
+    -fx-border-width: 3px;
+    -fx-border-radius: 20px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 30, 0.7, 0, 8);
+}
+
+/* Title */
+.waiting-title {
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f0e6d2;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-effect: dropshadow(gaussian, rgba(0, 158, 145, 0.9), 15, 0.8, 0, 3);
+}
+
+/* Countdown Container */
+.countdown-container {
+    -fx-effect: dropshadow(gaussian, rgba(0, 158, 145, 0.8), 40, 0.9, 0, 0);
+}
+
+/* Spinner Circles - Triple layer */
+.spinner-outer {
+    -fx-fill: transparent;
+    -fx-stroke: linear-gradient(to bottom, #0397ab, #00c8b7);
+    -fx-stroke-width: 6;
+    -fx-stroke-dash-array: 25 15;
+    -fx-opacity: 0.7;
+}
+
+.spinner-middle {
+    -fx-fill: transparent;
+    -fx-stroke: linear-gradient(to bottom, #00c8b7, #009e91);
+    -fx-stroke-width: 5;
+    -fx-stroke-dash-array: 20 12;
+    -fx-opacity: 0.6;
+}
+
+.spinner-inner {
+    -fx-fill: transparent;
+    -fx-stroke: linear-gradient(to bottom, #009e91, #0397ab);
+    -fx-stroke-width: 4;
+    -fx-stroke-dash-array: 15 10;
+    -fx-opacity: 0.8;
+}
+
+/* Huge Countdown Number */
+.countdown-huge {
+    -fx-font-size: 80px;
+    -fx-font-weight: bold;
+    -fx-text-fill: linear-gradient(to bottom, #00e6d2, #00c8b7);
+    -fx-effect: dropshadow(gaussian, rgba(0, 230, 210, 0.95), 25, 1.0, 0, 0);
+}
+
+.countdown-label {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #a09b8c;
+    -fx-letter-spacing: 3px;
+}
+
+/* Players Container */
+.players-container {
+    -fx-padding: 15px;
+    -fx-background-color: rgba(30, 35, 40, 0.4);
+    -fx-background-radius: 15px;
+}
+
+/* Player Avatar Background */
+.player-avatar-bg {
+    -fx-fill: rgba(0, 0, 0, 0.5);
+}
+
+/* Player Avatar */
+.player-avatar {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 12, 0.7, 0, 3);
+}
+
+.player-ready {
+    -fx-fill: linear-gradient(to bottom, #00e6d2, #00c8b7, #009e91);
+    -fx-stroke: #00ffee;
+    -fx-stroke-width: 3;
+}
+
+.player-waiting {
+    -fx-fill: linear-gradient(to bottom, #5c5c5c, #3a3a3a);
+    -fx-stroke: #787878;
+    -fx-stroke-width: 2;
+}
+
+.player-accepted {
+    -fx-fill: linear-gradient(to bottom, #00e6d2, #00c8b7, #009e91);
+    -fx-stroke: #00ffee;
+    -fx-stroke-width: 3;
+}
+
+/* Player Label */
+.player-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #c0b9a8;
+}
+
+.player-label-ready {
+    -fx-text-fill: #00e6d2;
+    -fx-effect: dropshadow(gaussian, rgba(0, 230, 210, 0.6), 8, 0.7, 0, 0);
+}
+
+/* Player Status */
+.player-status {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.player-status-ready {
+    -fx-text-fill: #00e6d2;
+}
+
+.player-status-waiting {
+    -fx-text-fill: #a09b8c;
+}
+
+/* VS Label - Bigger and bolder */
+.vs-label-big {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #785a28;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 10, 0.7, 0, 3);
+}
+
+/* Status Text */
+.status-text {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #00c8b7;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-effect: dropshadow(gaussian, rgba(0, 158, 145, 0.9), 10, 0.8, 0, 0);
+}
+

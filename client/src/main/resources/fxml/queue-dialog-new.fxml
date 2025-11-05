@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" styleClass="queue-dialog-root" prefWidth="500" prefHeight="600"><StackPane styleClass="gradient-background"/><VBox alignment="CENTER" spacing="25" styleClass="queue-dialog-container"><padding><Insets top="40" right="50" bottom="40" left="50"/></padding><VBox alignment="CENTER" spacing="10"><Label text="RANKED SOLO/DUO" styleClass="queue-mode-title"/><Label text="ĐANG TÌM TRẬN" styleClass="queue-status-title"/></VBox><StackPane prefWidth="300" prefHeight="300" styleClass="search-circle-container"><Circle fx:id="outerGlow" radius="150" styleClass="circle-glow-outer"/><Circle fx:id="outerRing" radius="140" strokeWidth="3" fill="transparent" styleClass="circle-ring-outer"/><Circle fx:id="middleRing" radius="110" strokeWidth="4" fill="transparent" styleClass="circle-ring-middle"/><Circle fx:id="innerRing" radius="80" strokeWidth="5" fill="transparent" styleClass="circle-ring-inner"/><Circle radius="65" styleClass="circle-core"/><VBox alignment="CENTER" spacing="8" styleClass="search-center"><Label text="" styleClass="search-icon-large"/><VBox alignment="CENTER" spacing="2"><Label fx:id="queueTimerLabel" text="00:00" styleClass="queue-timer-large"/><Label text="THỜI GIAN CHỜ" styleClass="queue-timer-subtitle"/></VBox></VBox></StackPane><VBox alignment="CENTER" spacing="12" styleClass="status-section"><HBox alignment="CENTER" spacing="8"><Circle fx:id="statusIndicator" radius="6" styleClass="status-dot-searching"/><Label text="Tìm kiếm đối thủ..." styleClass="status-text"/></HBox><Label text="Thời gian ước tính: &lt; 2 phút" styleClass="estimate-text"/></VBox><VBox alignment="CENTER" spacing="8" styleClass="tips-box"><Label text=" MẸO LIÊN MINH" styleClass="tips-header"/><Label text="Hãy chuẩn bị tinh thần chiến đấu!" styleClass="tips-content" wrapText="true"/></VBox><Button fx:id="cancelQueueButton" text=" RỜI HÀNG CHỜ" styleClass="cancel-button-circular" prefWidth="220" prefHeight="50"/></VBox></StackPane>

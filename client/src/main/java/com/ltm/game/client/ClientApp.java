@@ -238,6 +238,11 @@ public class ClientApp extends Application {
                         lobbyController.onQueueMatched(opponent);
                     }
                 }
+                case Protocol.MATCH_WAITING -> {
+                    if (lobbyController != null) {
+                        lobbyController.onMatchWaiting();
+                    }
+                }
                 case Protocol.MATCH_READY -> {
                     if (lobbyController != null) {
                         lobbyController.onMatchReady();

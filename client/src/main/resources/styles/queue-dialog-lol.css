@@ -1,0 +1,148 @@
+/* ====================================
+   LEAGUE OF LEGENDS QUEUE DIALOG STYLE
+   ==================================== */
+
+/* Root Container */
+.lol-queue-root {
+    -fx-background-color: transparent;
+}
+
+/* Dark Background - REMOVED for transparency */
+.lol-dark-background {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10px;
+}
+
+/* Circle Container */
+.lol-circle-container {
+    -fx-padding: 20px;
+}
+
+/* Outer Gold Ring */
+.lol-ring-gold {
+    -fx-stroke: linear-gradient(from 0% 0% to 100% 100%, 
+        #c89b3c 0%, 
+        #f0e6d2 50%, 
+        #c89b3c 100%);
+    -fx-stroke-width: 4;
+    -fx-stroke-type: inside;
+    -fx-effect: dropshadow(gaussian, rgba(200, 155, 60, 0.6), 15, 0.7, 0, 0);
+}
+
+/* Inner Cyan Ring */
+.lol-ring-cyan {
+    -fx-stroke: linear-gradient(from 0% 0% to 100% 100%, 
+        #0bc5ea 0%, 
+        #0ac8b9 50%, 
+        #0bc5ea 100%);
+    -fx-stroke-width: 6;
+    -fx-stroke-type: inside;
+    -fx-effect: dropshadow(gaussian, rgba(11, 197, 234, 0.8), 20, 0.8, 0, 0);
+}
+
+/* Dark Center Circle - Made more transparent */
+.lol-center-dark {
+    -fx-fill: radial-gradient(center 50% 50%, radius 100%, 
+        rgba(10, 30, 45, 0.4), 
+        rgba(5, 15, 25, 0.6));
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.3, 0, 0);
+}
+
+/* Hextech Icon */
+.lol-hextech-icon {
+    -fx-font-size: 72px;
+    -fx-text-fill: linear-gradient(to bottom, #0bc5ea, #0ac8b9);
+    -fx-effect: dropshadow(gaussian, rgba(11, 197, 234, 0.9), 15, 0.8, 0, 0);
+}
+
+/* Title Text */
+.lol-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f0e6d2;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-letter-spacing: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 8, 0.7, 0, 2);
+}
+
+/* Subtitle Text */
+.lol-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #c8aa6e;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 5, 0.5, 0, 1);
+}
+
+/* Buttons Container */
+.lol-buttons-container {
+    -fx-padding: 20 0 10 0;
+}
+
+/* Accept Button (Cyan/Teal) */
+.lol-button-accept {
+    -fx-background-color: linear-gradient(to bottom, #0bc5ea, #0ac8b9);
+    -fx-text-fill: #0a1428;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-background-radius: 8px;
+    -fx-border-color: #0df0ff;
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(11, 197, 234, 0.6), 15, 0.6, 0, 3);
+}
+
+.lol-button-accept:hover {
+    -fx-background-color: linear-gradient(to bottom, #0df0ff, #0bd4c5);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(11, 197, 234, 0.9), 20, 0.8, 0, 5);
+}
+
+.lol-button-accept:pressed {
+    -fx-background-color: linear-gradient(to bottom, #0aa5c0, #09a89d);
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+/* Decline Button (Gold) */
+.lol-button-decline {
+    -fx-background-color: transparent;
+    -fx-text-fill: #c8aa6e;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-background-radius: 8px;
+    -fx-border-color: #c89b3c;
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(200, 155, 60, 0.4), 10, 0.5, 0, 2);
+}
+
+.lol-button-decline:hover {
+    -fx-background-color: rgba(200, 155, 60, 0.2);
+    -fx-text-fill: #f0e6d2;
+    -fx-border-color: #f0e6d2;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(200, 155, 60, 0.7), 15, 0.7, 0, 3);
+}
+
+.lol-button-decline:pressed {
+    -fx-background-color: rgba(200, 155, 60, 0.3);
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+/* Animation Classes */
+@keyframes rotate-slow {
+    from { -fx-rotate: 0deg; }
+    to { -fx-rotate: 360deg; }
+}
+
+@keyframes rotate-fast {
+    from { -fx-rotate: 360deg; }
+    to { -fx-rotate: 0deg; }
+}

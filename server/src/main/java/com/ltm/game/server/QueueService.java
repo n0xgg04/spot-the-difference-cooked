@@ -163,20 +163,20 @@ public class QueueService {
                 Logger.info("[MATCH] All accepted check: " + allAccepted + " (size: " + acceptanceMap.size() + ", values: " + acceptanceMap + ")");
 
                 if (allAccepted) {
-                    // Both accepted - start game!
+                    // Both accepted - notify both players to start countdown!
                     String[] players = matchId.split("_vs_");
                     String player1 = players[0];
                     String player2 = players[1];
 
-                    Logger.info("[MATCH] Both players accepted. Starting game: " + matchId);
+                    Logger.info("[MATCH] Both players accepted. Sending MATCH_READY: " + matchId);
 
-                    // Cancel timeout
+                    // Cancel the 10s timeout (for acceptance)
                     ScheduledFuture<?> timeout = matchTimeouts.remove(matchId);
                     if (timeout != null) {
                         timeout.cancel(false);
                     }
 
-                    // Notify both players that match is ready
+                    // Notify BOTH players that match is ready (start countdown)
                     ClientSession s1 = lobbyService.getOnline(player1);
                     ClientSession s2 = lobbyService.getOnline(player2);
 
@@ -187,14 +187,14 @@ public class QueueService {
                         s2.send(new Message(Protocol.MATCH_READY, Map.of()).toJson());
                     }
 
-                    // Start game after 10 seconds delay (configurable wait time)
+                    // Start game after 11 seconds delay (countdown time: 10→0)
                     new Thread(() -> {
                         try {
-                            Thread.sleep(10000);
+                            Thread.sleep(11000); // 11 seconds to match countdown sound
 
-                            // Double-check match still exists (not declined during 10s delay)
+                            // Double-check match still exists (not declined during 11s delay)
                             if (!pendingMatches.containsKey(matchId)) {
-                                Logger.info("[MATCH] Match " + matchId + " was cancelled during 10s delay. Not starting game.");
+                                Logger.info("[MATCH] Match " + matchId + " was cancelled during 11s delay. Not starting game.");
                                 return;
                             }
 
@@ -208,6 +208,12 @@ public class QueueService {
                             Logger.error("[MATCH] Error starting game: " + matchId, e);
                         }
                     }).start();
+                } else {
+                    // Only one player accepted so far - show waiting screen
+                    ClientSession acceptingSession = lobbyService.getOnline(username);
+                    if (acceptingSession != null) {
+                        acceptingSession.send(new Message(Protocol.MATCH_WAITING, Map.of()).toJson());
+                    }
                 }
                 break;
             }
@@ -244,9 +250,11 @@ public class QueueService {
                 // Clean up
                 pendingMatches.remove(matchId);
 
-                // Reset both players to waiting status
-                resetToWaiting(player1);
-                resetToWaiting(player2);
+                // REMOVE both players from queue (not reset to waiting)
+                removeFromQueue(player1);
+                removeFromQueue(player2);
+                
+                Logger.info("[MATCH] Removed both players from queue after decline by " + username);
 
                 break;
             }
@@ -283,9 +291,11 @@ public class QueueService {
             pendingMatches.remove(matchId);
             matchTimeouts.remove(matchId);
 
-            // Reset both players to waiting
-            resetToWaiting(player1);
-            resetToWaiting(player2);
+            // REMOVE both players from queue (not reset to waiting)
+            removeFromQueue(player1);
+            removeFromQueue(player2);
+            
+            Logger.info("[MATCH] Removed both players from queue after timeout");
         }
     }
 
@@ -348,8 +358,10 @@ public class QueueService {
                 // Clean up
                 pendingMatches.remove(matchId);
 
-                // Reset other player to waiting
-                resetToWaiting(otherPlayer);
+                // REMOVE other player from queue (not reset to waiting)
+                removeFromQueue(otherPlayer);
+                
+                Logger.info("[MATCH] Removed other player from queue after disconnect");
 
                 break;
             }
