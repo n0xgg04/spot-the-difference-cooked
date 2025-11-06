@@ -85,7 +85,34 @@ public class LobbyService {
         List<UserStatus> list = currentLobby();
         Message msg = new Message(Protocol.LOBBY_LIST, list);
         String json = msg.toJson();
-        online.values().forEach(s -> s.send(json));
+        
+        // Remove disconnected sessions and send to active ones
+        List<String> toRemove = new ArrayList<>();
+        online.forEach((username, session) -> {
+            try {
+                if (session.socket.isClosed() || !session.socket.isConnected()) {
+                    toRemove.add(username);
+                } else {
+                    session.send(json);
+                }
+            } catch (Exception e) {
+                toRemove.add(username);
+            }
+        });
+        
+        // Clean up disconnected sessions
+        toRemove.forEach(username -> {
+            online.remove(username);
+            Logger.debug("Removed disconnected session for: " + username);
+        });
+        
+        // If we removed any sessions, broadcast again with updated list
+        if (!toRemove.isEmpty()) {
+            List<UserStatus> updatedList = currentLobby();
+            Message updatedMsg = new Message(Protocol.LOBBY_LIST, updatedList);
+            String updatedJson = updatedMsg.toJson();
+            online.values().forEach(s -> s.send(updatedJson));
+        }
     }
 
     public void sendLobbyList(ClientSession session) {

@@ -71,61 +71,78 @@
 
 /* Match Buttons */
 .match-button {
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-font-weight: 900;
     -fx-text-fill: #f0e6d2;
-    -fx-font-family: "Segoe UI", "Arial", sans-serif;
-    -fx-background-radius: 8px;
-    -fx-border-radius: 8px;
+    -fx-font-family: "Segoe UI Black", "Arial Black", "Impact", sans-serif;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 8, 0.5, 0, 3);
+    -fx-padding: 14px 30px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 10, 0.6, 0, 4);
+    -fx-letter-spacing: 1px;
 }
 
 .match-button:hover {
-    -fx-scale-x: 1.05;
-    -fx-scale-y: 1.05;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 12, 0.7, 0, 4);
+    -fx-scale-x: 1.08;
+    -fx-scale-y: 1.08;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 15, 0.8, 0, 5);
 }
 
 .match-button:pressed {
-    -fx-scale-x: 0.98;
-    -fx-scale-y: 0.98;
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 5, 0.4, 0, 2);
 }
 
-/* Accept Button */
+/* Accept Button - Riot Green/Teal */
 .accept-button {
-    -fx-background-color: linear-gradient(to bottom, #0397ab, #009e91);
-    -fx-border-color: #00c8b7;
+    -fx-background-color: linear-gradient(to bottom, #0bc6b4, #009e91, #007d6f);
+    -fx-border-color: #0de9d4;
     -fx-border-width: 2px;
+    -fx-text-fill: #ffffff;
 }
 
 .accept-button:hover {
-    -fx-background-color: linear-gradient(to bottom, #00c8b7, #00b5a5);
-    -fx-border-color: #00e6d2;
+    -fx-background-color: linear-gradient(to bottom, #0de9d4, #0bc6b4, #009e91);
+    -fx-border-color: #1ffce6;
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(13, 233, 212, 0.8), 20, 0.9, 0, 0);
+}
+
+.accept-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #007d6f, #006b5f, #005850);
 }
 
 .accept-button:disabled {
     -fx-background-color: linear-gradient(to bottom, #2a4a52, #1e3a42);
     -fx-border-color: #3a5a62;
     -fx-text-fill: #5a7a82;
-    -fx-opacity: 0.6;
+    -fx-opacity: 0.5;
 }
 
-/* Decline Button */
+/* Decline Button - Riot Dark Gray to Red on hover */
 .decline-button {
-    -fx-background-color: linear-gradient(to bottom, #5c5c5c, #3a3a3a);
-    -fx-border-color: #787878;
+    -fx-background-color: linear-gradient(to bottom, #3c3c41, #2b2b2f, #1e1e22);
+    -fx-border-color: #5c5c5f;
     -fx-border-width: 2px;
+    -fx-text-fill: #c9c9c9;
 }
 
 .decline-button:hover {
-    -fx-background-color: linear-gradient(to bottom, #cd3250, #b82846);
-    -fx-border-color: #e62846;
+    -fx-background-color: linear-gradient(to bottom, #e84057, #d13447, #b82846);
+    -fx-border-color: #ff546c;
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(232, 64, 87, 0.8), 20, 0.9, 0, 0);
+}
+
+.decline-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #9b1f2f, #871a28, #6f1623);
 }
 
 .decline-button:disabled {
     -fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
     -fx-border-color: #3a3a3a;
     -fx-text-fill: #5a5a5a;
-    -fx-opacity: 0.6;
+    -fx-opacity: 0.5;
 }

@@ -5,6 +5,7 @@ public final class Protocol {
 
     public static final String AUTH_LOGIN = "auth/login";
     public static final String AUTH_RESULT = "auth/result";
+    public static final String AUTH_LOGOUT = "auth/logout";
 
     public static final String ERROR = "error";
 

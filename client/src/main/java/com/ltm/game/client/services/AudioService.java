@@ -59,7 +59,7 @@ public class AudioService {
     public void playGameMusic() {
         stopGameMusic();
         try {
-            String musicPath = getClass().getResource("/sounds/nhac_ingame.mp3").toExternalForm();
+            String musicPath = getClass().getResource("/sounds/game.mp3").toExternalForm();
             gameMusic = new AudioClip(musicPath);
             gameMusic.setCycleCount(AudioClip.INDEFINITE);
             if (isMuted) {

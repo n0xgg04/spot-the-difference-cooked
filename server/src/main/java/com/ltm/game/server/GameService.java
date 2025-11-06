@@ -84,20 +84,23 @@ public class GameService {
                     endGame(room, "all-found");
                     return;
                 }
+                
+                // Correct hit: keep turn, reset timer
+                room.turnSeq++;
+                System.out.println("Correct hit! " + session.username + " keeps turn (seq=" + room.turnSeq + ")");
+                scheduleTurnTimeout(room);
+                broadcastUpdate(room, turnSeconds * 1000);
             } else {
-                // Missed
-                System.out.println("✗ Miss! No difference at (" + x + ", " + y + ")");
+                // Missed: switch turn to opponent
+                System.out.println("✗ Miss! No difference at (" + x + ", " + y + ") - switching turn");
+                room.currentTurn = room.currentTurn.equals(room.playerA) ? room.playerB : room.playerA;
+                room.turnSeq++;
+                System.out.println("Turn switched to: " + room.currentTurn + " (seq=" + room.turnSeq + ")");
+                
+                // Reset timer and broadcast update with NEW turnSeq
+                scheduleTurnTimeout(room);
+                broadcastUpdate(room, turnSeconds * 1000);
             }
-            
-            // Always switch turn after any click (hit or miss)
-            // Increment turnSeq FIRST to invalidate old timeout, then schedule new one
-            room.currentTurn = room.currentTurn.equals(room.playerA) ? room.playerB : room.playerA;
-            room.turnSeq++;
-            System.out.println("Turn switched to: " + room.currentTurn + " (seq=" + room.turnSeq + ")");
-            
-            // Reset timer and broadcast update with NEW turnSeq
-            scheduleTurnTimeout(room);
-            broadcastUpdate(room, turnSeconds * 1000);
         }
     }
 
@@ -196,10 +199,20 @@ public class GameService {
         Map<String,Object> payload = new HashMap<>();
         payload.put("reason", reason);
         payload.put("scores", Map.of(room.playerA, room.scoreA, room.playerB, room.scoreB));
+        
         String winner;
-        if (room.scoreA > room.scoreB) winner = room.playerA;
-        else if (room.scoreB > room.scoreA) winner = room.playerB;
-        else winner = "DRAW";
+        // If someone quit, the other player wins
+        if (reason.endsWith("-quit")) {
+            String quitter = reason.substring(0, reason.indexOf("-quit"));
+            winner = quitter.equals(room.playerA) ? room.playerB : room.playerA;
+            Logger.info("[GAME] Player " + quitter + " quit, " + winner + " wins by forfeit");
+        } else {
+            // Normal game end - determine by score
+            if (room.scoreA > room.scoreB) winner = room.playerA;
+            else if (room.scoreB > room.scoreA) winner = room.playerB;
+            else winner = "DRAW";
+        }
+        
         payload.put("result", winner);
         sendToPlayers(room, new Message(Protocol.GAME_END, payload));
         rooms.remove(room.id);

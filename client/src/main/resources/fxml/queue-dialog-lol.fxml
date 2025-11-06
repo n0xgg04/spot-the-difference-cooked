@@ -48,8 +48,8 @@
             <padding>
                 <Insets top="20" bottom="10"/>
             </padding>
-            
-            <Button fx:id="cancelQueueButton" text="HỦY TÌM KIẾM" 
+
+            <Button fx:id="cancelQueueButton" text="HỦY TÌM TRẬN" 
                     styleClass="lol-button-decline" 
                     prefWidth="200" prefHeight="45"/>
         </VBox>

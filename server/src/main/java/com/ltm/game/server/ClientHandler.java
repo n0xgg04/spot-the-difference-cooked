@@ -57,6 +57,7 @@ public class ClientHandler implements Runnable {
     private void handle(Message msg) {
         switch (msg.type) {
             case Protocol.AUTH_LOGIN -> onLogin(msg);
+            case Protocol.AUTH_LOGOUT -> onLogout();
             case Protocol.LOBBY_REQUEST -> onLobbyRequest();
             case Protocol.INVITE_SEND -> lobby.onInviteSend(session, (Map<?,?>) msg.payload);
             case Protocol.INVITE_RESPONSE -> gameService.onInviteResponse(session, (Map<?,?>) msg.payload);
@@ -125,6 +126,16 @@ public class ClientHandler implements Runnable {
         session.send(new Message(Protocol.AUTH_RESULT, resp).toJson());
         if (result.success) {
             lobby.onLogin(session, result.user);
+        }
+    }
+
+    private void onLogout() {
+        if (session.username != null) {
+            Logger.info("User " + session.username + " logged out");
+            lobby.onDisconnect(session);
+            queueService.handleDisconnect(session.username);
+            session.username = null;
+            session.inGame = false;
         }
     }
 

@@ -557,8 +557,9 @@ public class LobbyController {
             queueDialog = null;
         }
 
-        // Play match found sound
+        // Stop all background music and play match found sound only
         if (audioService != null) {
+            audioService.stopBackgroundMusic();
             audioService.playMatchFoundSound();
         }
 
@@ -662,9 +663,9 @@ public class LobbyController {
 
     public void onMatchReady() {
         javafx.application.Platform.runLater(() -> {
-            // Play match-start sound when both clients are entering the match
+            // Stop lobby music when both clients are ready
             if (audioService != null) {
-                audioService.playMatchStartSound();
+                audioService.stopBackgroundMusic();
             }
             if (matchWaitingController != null) {
                 matchWaitingController.onMatchReady();

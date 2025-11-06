@@ -78,6 +78,11 @@ public class ClientApp extends Application {
     }
 
     private void handleLogout() {
+        // Send logout message to server
+        if (networkClient != null) {
+            networkClient.send(new Message(Protocol.AUTH_LOGOUT, null));
+        }
+        
         this.username = null;
         this.totalPoints = 0;
         this.totalWins = 0;
@@ -161,13 +166,21 @@ public class ClientApp extends Application {
             if (currentRoomId != null) {
                 networkClient.send(new Message(Protocol.GAME_CLICK, Map.of("roomId", currentRoomId, "x", x, "y", y)));
             }
-        }, username, audioService);
+        }, username, audioService, () -> {
+            // Handle quit game
+            if (currentRoomId != null) {
+                networkClient.send(new Message(Protocol.GAME_QUIT, Map.of("roomId", currentRoomId)));
+            }
+        });
 
         stage.setScene(new Scene(gameView.getRoot()));
     }
 
     private void showResult(Map<?, ?> payload) {
         try {
+            // Stop all game audio when showing result
+            audioService.stopAll();
+            
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/result.fxml"));
             Scene scene = new Scene(loader.load());
 

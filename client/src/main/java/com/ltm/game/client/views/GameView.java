@@ -55,22 +55,22 @@ public class GameView {
     private String playerA = "";
     private String playerB = "";
     private String myUsername = "";
+    private Runnable onQuitGame;
     private int remainingSeconds = 15;
     private Timeline countdownTimer;
     private final List<Map<String,Object>> found = new ArrayList<>();
-    private Double lastClickX = null;
-    private Double lastClickY = null;
     private boolean justClicked = false;
     
     private Image leftImg;
     private Image rightImg;
-    private int imgW = 300;
-    private int imgH = 300;
-    private final double boxX1 = 50, boxY = 140, boxX2 = 500, boxSize = 350;
+    private int imgW = 400;
+    private int imgH = 400;
+    private final double boxX1 = 25, boxY = 25, boxX2 = 475, boxSize = 400;
 
-    public GameView(BiConsumer<Double, Double> onClick, String myUsername, AudioService audioService) {
+    public GameView(BiConsumer<Double, Double> onClick, String myUsername, AudioService audioService, Runnable onQuitGame) {
         this.myUsername = myUsername;
         this.audioService = audioService;
+        this.onQuitGame = onQuitGame;
         
         if (audioService != null) {
             audioService.playGameMusic();
@@ -142,25 +142,30 @@ public class GameView {
         
         // Canvas click handler
         canvas.setOnMouseClicked(e -> {
+            // Check if it's my turn
+            if (!nextTurn.equals(myUsername)) {
+                System.out.println("Not your turn! Current turn: " + nextTurn);
+                return;
+            }
+            
             double x = e.getX();
             double y = e.getY();
             System.out.println("Canvas clicked at: (" + x + ", " + y + ")");
             Double mappedX = null, mappedY = null;
+            
+            // Only allow clicking on LEFT box (modified image), not RIGHT box (original image)
             if (x >= boxX1 && x <= boxX1 + boxSize && y >= boxY && y <= boxY + boxSize) {
                 double lx = x - boxX1; double ly = y - boxY;
                 mappedX = lx * (imgW / boxSize);
                 mappedY = ly * (imgH / boxSize);
                 System.out.println("Left box clicked - mapped to image coords: (" + mappedX + ", " + mappedY + ")");
             } else if (x >= boxX2 && x <= boxX2 + boxSize && y >= boxY && y <= boxY + boxSize) {
-                double rx = x - boxX2; double ry = y - boxY;
-                mappedX = rx * (imgW / boxSize);
-                mappedY = ry * (imgH / boxSize);
-                System.out.println("Right box clicked - mapped to image coords: (" + mappedX + ", " + mappedY + ")");
+                System.out.println("Right box (original image) clicked - ignoring");
+                return;
             }
+            
             if (mappedX != null) {
                 System.out.println("Sending onClick callback with coords: (" + mappedX + ", " + mappedY + ")");
-                lastClickX = mappedX;
-                lastClickY = mappedY;
                 justClicked = true;
                 render();
                 onClick.accept(mappedX, mappedY);
@@ -231,7 +236,57 @@ public class GameView {
         HBox.setHgrow(leftSpacer, Priority.ALWAYS);
         HBox.setHgrow(rightSpacer, Priority.ALWAYS);
         
-        topRow.getChildren().addAll(leftSpacer, playerABox, centerBox, playerBBox, rightSpacer);
+        // Quit button
+        javafx.scene.control.Button quitButton = new javafx.scene.control.Button("✖ THOÁT");
+        quitButton.setStyle(
+            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-size: 14px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: #ffffff;" +
+            "-fx-background-color: linear-gradient(to bottom, #e84057, #d13447, #b82846);" +
+            "-fx-background-radius: 8px;" +
+            "-fx-border-color: #ff546c;" +
+            "-fx-border-width: 2px;" +
+            "-fx-border-radius: 8px;" +
+            "-fx-padding: 8px 20px;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(232,64,87,0.6), 10, 0.7, 0, 3);"
+        );
+        quitButton.setOnMouseEntered(e -> quitButton.setStyle(
+            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-size: 14px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: #ffffff;" +
+            "-fx-background-color: linear-gradient(to bottom, #ff546c, #e84057, #d13447);" +
+            "-fx-background-radius: 8px;" +
+            "-fx-border-color: #ff6a7f;" +
+            "-fx-border-width: 2px;" +
+            "-fx-border-radius: 8px;" +
+            "-fx-padding: 8px 20px;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(255,84,108,0.9), 15, 0.8, 0, 0);"
+        ));
+        quitButton.setOnMouseExited(e -> quitButton.setStyle(
+            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-size: 14px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: #ffffff;" +
+            "-fx-background-color: linear-gradient(to bottom, #e84057, #d13447, #b82846);" +
+            "-fx-background-radius: 8px;" +
+            "-fx-border-color: #ff546c;" +
+            "-fx-border-width: 2px;" +
+            "-fx-border-radius: 8px;" +
+            "-fx-padding: 8px 20px;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(232,64,87,0.6), 10, 0.7, 0, 3);"
+        ));
+        quitButton.setOnAction(e -> {
+            if (onQuitGame != null) {
+                onQuitGame.run();
+            }
+        });
+        
+        topRow.getChildren().addAll(leftSpacer, playerABox, centerBox, playerBBox, rightSpacer, quitButton);
         
         header.getChildren().add(topRow);
         
@@ -424,8 +479,6 @@ public class GameView {
         if (p.get("found") instanceof List<?> f) {
             int oldFoundCount = found.size();
             found.clear();
-            lastClickX = null;
-            lastClickY = null;
             
             Map<String,Object> latestFind = null;
             for (Object o: f) {
@@ -593,34 +646,6 @@ public class GameView {
             g.strokeOval(boxX2 + sx - rr, boxY + sy - rr, rr*2, rr*2);
         }
         
-        // Draw click indicator (skill-shot style)
-        if (lastClickX != null && lastClickY != null) {
-            double sx = lastClickX * (boxSize / imgW);
-            double sy = lastClickY * (boxSize / imgH);
-            
-            // Outer glow
-            g.setStroke(Color.web("#f39c12", 0.3));
-            g.setLineWidth(8);
-            double crossSize = 18;
-            g.strokeLine(boxX1 + sx - crossSize, boxY + sy, boxX1 + sx + crossSize, boxY + sy);
-            g.strokeLine(boxX1 + sx, boxY + sy - crossSize, boxX1 + sx, boxY + sy + crossSize);
-            g.strokeLine(boxX2 + sx - crossSize, boxY + sy, boxX2 + sx + crossSize, boxY + sy);
-            g.strokeLine(boxX2 + sx, boxY + sy - crossSize, boxX2 + sx, boxY + sy + crossSize);
-            
-            // Main crosshair
-            g.setStroke(Color.web("#f39c12"));
-            g.setLineWidth(3);
-            crossSize = 15;
-            g.strokeLine(boxX1 + sx - crossSize, boxY + sy, boxX1 + sx + crossSize, boxY + sy);
-            g.strokeLine(boxX1 + sx, boxY + sy - crossSize, boxX1 + sx, boxY + sy + crossSize);
-            g.strokeLine(boxX2 + sx - crossSize, boxY + sy, boxX2 + sx + crossSize, boxY + sy);
-            g.strokeLine(boxX2 + sx, boxY + sy - crossSize, boxX2 + sx, boxY + sy + crossSize);
-            
-            // Center dot
-            g.setFill(Color.web("#FFFFFF"));
-            g.fillOval(boxX1 + sx - 3, boxY + sy - 3, 6, 6);
-            g.fillOval(boxX2 + sx - 3, boxY + sy - 3, 6, 6);
-        }
         
         // Update player names and scores
         updatePlayerInfo();
