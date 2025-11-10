@@ -11,8 +11,8 @@ import java.util.Map;
 public class ImageSetRepository {
 
     public ImageSet loadRandom() throws Exception {
-        // Prefer most recent valid sets (with paths and at least 1 difference).
-        String pickSql = "SELECT id, width, height, img_left_path, img_right_path FROM image_sets ORDER BY id DESC LIMIT 20";
+        // Load all valid image sets with random order
+        String pickSql = "SELECT id, width, height, img_left_path, img_right_path FROM image_sets ORDER BY RAND() LIMIT 20";
         try (Connection c = Database.getConnection(); PreparedStatement ps = c.prepareStatement(pickSql)) {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -26,6 +26,7 @@ public class ImageSetRepository {
                     byte[] leftBytes = readContent(leftPath);
                     byte[] rightBytes = readContent(rightPath);
                     if (leftBytes == null || rightBytes == null || leftBytes.length == 0 || rightBytes.length == 0) continue;
+                    System.out.println("✓ Selected random image set ID: " + id);
                     return new ImageSet(id, w, h, leftBytes, rightBytes, diffs);
                 }
             }
