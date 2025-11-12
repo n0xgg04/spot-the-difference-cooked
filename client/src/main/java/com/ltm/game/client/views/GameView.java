@@ -31,7 +31,7 @@ public class GameView {
     private final StackPane root = new StackPane();
     private final Canvas canvas = new Canvas(900, 450);
     
-    // Player info labels
+    // Nhãn thông tin người chơi
     private final Label playerANameLabel = new Label();
     private final Label playerBNameLabel = new Label();
     private final Label playerAScoreLabel = new Label("0");
@@ -39,12 +39,12 @@ public class GameView {
     private final Circle playerAAvatar = new Circle(25);
     private final Circle playerBAvatar = new Circle(25);
     
-    // Timer and turn indicator
+    // Đồng hồ đếm ngược và chỉ báo lượt
     private final Label timerLabel = new Label("15");
     private final Label turnIndicator = new Label("YOUR TURN");
     private final StackPane timerBox = new StackPane();
     
-    // Animated borders for images
+    // Viền phát sáng hoạt hình cho ảnh
     private final Rectangle leftBorderGlow = new Rectangle();
     private final Rectangle rightBorderGlow = new Rectangle();
     private Timeline glowAnimation;
@@ -77,7 +77,7 @@ public class GameView {
             audioService.loadGameSounds();
         }
         
-        // Background with dark gradient overlay
+        // Hình nền với lớp phủ gradient tối
         ImageView bgImageView = new ImageView();
         try {
             Image bgImage = new Image(getClass().getResourceAsStream("/images/v2/forest-8227410.jpg"));
@@ -86,29 +86,29 @@ public class GameView {
             bgImageView.fitWidthProperty().bind(root.widthProperty());
             bgImageView.fitHeightProperty().bind(root.heightProperty());
         } catch (Exception e) {
-            System.err.println("Could not load background image: " + e.getMessage());
+            System.err.println("Không thể tải ảnh nền: " + e.getMessage());
         }
         
-        // Dark overlay for better contrast
+        // Lớp phủ tối để tăng độ tương phản
         Pane overlay = new Pane();
         overlay.setStyle("-fx-background-color: rgba(10,15,25,0.75);");
         overlay.prefWidthProperty().bind(root.widthProperty());
         overlay.prefHeightProperty().bind(root.heightProperty());
         
-        // Main layout
+        // Bố cục chính
         BorderPane mainLayout = new BorderPane();
         mainLayout.setStyle("-fx-background-color: transparent;");
         
-        // Create Riot-style header
+        // Tạo header theo phong cách Riot
         VBox header = createRiotStyleHeader();
         mainLayout.setTop(header);
         
-        // Center: Canvas with turn indicator
+        // Giữa: Canvas với chỉ báo lượt
         VBox centerContainer = new VBox(15);
         centerContainer.setAlignment(Pos.CENTER);
         centerContainer.setPadding(new Insets(10, 15, 15, 15));
         
-        // Add turn indicator above canvas
+        // Thêm chỉ báo lượt phía trên canvas
         turnIndicator.setStyle(
             "-fx-font-family: 'Arial Black', sans-serif;" +
             "-fx-font-size: 24px;" +
@@ -125,7 +125,7 @@ public class GameView {
         
         root.getChildren().addAll(bgImageView, overlay, mainLayout);
         
-        // Initialize countdown timer
+        // Khởi tạo đồng hồ đếm ngược
         countdownTimer = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             if (remainingSeconds > 0) {
                 remainingSeconds--;
@@ -134,43 +134,43 @@ public class GameView {
         }));
         countdownTimer.setCycleCount(Timeline.INDEFINITE);
         
-        // Setup animated border glow
+        // Thiết lập hiệu ứng phát sáng viền
         setupBorderGlowAnimation();
         
-        // Initial draw
+        // Vẽ ban đầu
         drawBase();
         
-        // Canvas click handler
+        // Xử lý click trên canvas
         canvas.setOnMouseClicked(e -> {
-            // Check if it's my turn
+            // Kiểm tra xem có phải lượt của mình không
             if (!nextTurn.equals(myUsername)) {
-                System.out.println("Not your turn! Current turn: " + nextTurn);
+                System.out.println("Không phải lượt của bạn! Lượt hiện tại: " + nextTurn);
                 return;
             }
             
             double x = e.getX();
             double y = e.getY();
-            System.out.println("Canvas clicked at: (" + x + ", " + y + ")");
+            System.out.println("Canvas được click tại: (" + x + ", " + y + ")");
             Double mappedX = null, mappedY = null;
-            
-            // Only allow clicking on LEFT box (modified image), not RIGHT box (original image)
+
+            // Chỉ cho phép click vào ô TRÁI, không cho click ô PHẢI (ảnh gốc)
             if (x >= boxX1 && x <= boxX1 + boxSize && y >= boxY && y <= boxY + boxSize) {
                 double lx = x - boxX1; double ly = y - boxY;
                 mappedX = lx * (imgW / boxSize);
                 mappedY = ly * (imgH / boxSize);
-                System.out.println("Left box clicked - mapped to image coords: (" + mappedX + ", " + mappedY + ")");
+                System.out.println("Click ô trái - chuyển đổi sang tọa độ ảnh: (" + mappedX + ", " + mappedY + ")");
             } else if (x >= boxX2 && x <= boxX2 + boxSize && y >= boxY && y <= boxY + boxSize) {
-                System.out.println("Right box (original image) clicked - ignoring");
+                System.out.println("Click ô phải (ảnh gốc) - bỏ qua");
                 return;
             }
             
             if (mappedX != null) {
-                System.out.println("Sending onClick callback with coords: (" + mappedX + ", " + mappedY + ")");
+                System.out.println("Gửi callback onClick với tọa độ: (" + mappedX + ", " + mappedY + ")");
                 justClicked = true;
                 render();
                 onClick.accept(mappedX, mappedY);
             } else {
-                System.out.println("Click outside image boxes - ignoring");
+                System.out.println("Click bên ngoài vùng ảnh - bỏ qua");
             }
         });
     }
@@ -184,19 +184,19 @@ public class GameView {
             "-fx-border-width: 0 0 2 0;"
         );
         
-        // Top row: Player vs Player with timer in center
+        // Hàng trên: Người chơi vs Người chơi với đồng hồ ở giữa
         HBox topRow = new HBox(20);
         topRow.setAlignment(Pos.CENTER);
         topRow.setPadding(new Insets(5, 0, 10, 0));
         
-        // Player A (Left)
+        // Người chơi A (Trái)
         HBox playerABox = createPlayerBox(playerAAvatar, playerANameLabel, playerAScoreLabel, true);
         
-        // VS + Timer (Center)
+        // VS + Đồng hồ (Giữa)
         VBox centerBox = new VBox(5);
         centerBox.setAlignment(Pos.CENTER);
         
-        // Timer with hexagonal style
+        // Đồng hồ với phong cách lục giác
         timerBox.setMinSize(80, 80);
         timerBox.setMaxSize(80, 80);
         timerBox.setStyle(
@@ -228,7 +228,7 @@ public class GameView {
         
         centerBox.getChildren().addAll(timerBox, vsLabel);
         
-        // Player B (Right)
+        // Người chơi B (Phải)
         HBox playerBBox = createPlayerBox(playerBAvatar, playerBNameLabel, playerBScoreLabel, false);
         
         Region leftSpacer = new Region();
@@ -236,7 +236,7 @@ public class GameView {
         HBox.setHgrow(leftSpacer, Priority.ALWAYS);
         HBox.setHgrow(rightSpacer, Priority.ALWAYS);
         
-        // Quit button
+        // Nút thoát
         javafx.scene.control.Button quitButton = new javafx.scene.control.Button("✖ THOÁT");
         quitButton.setStyle(
             "-fx-font-family: 'Arial Black', sans-serif;" +
@@ -305,7 +305,7 @@ public class GameView {
             "-fx-border-width: 1;"
         );
         
-        // Avatar circle with gradient
+        // Vòng tròn avatar với gradient
         avatar.setFill(new LinearGradient(
             0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
             new Stop(0, Color.web("#667eea")),
@@ -315,7 +315,7 @@ public class GameView {
         avatar.setStrokeWidth(2.5);
         avatar.setEffect(new DropShadow(15, Color.web("#667eea", 0.6)));
         
-        // Name label
+        // Nhãn tên
         nameLabel.setStyle(
             "-fx-font-family: 'Arial', sans-serif;" +
             "-fx-font-size: 16px;" +
@@ -325,7 +325,7 @@ public class GameView {
         );
         nameLabel.setText("Player");
         
-        // Score box
+        // Hộp điểm số
         StackPane scoreBox = new StackPane();
         scoreBox.setStyle(
             "-fx-background-color: linear-gradient(to bottom, #f39c12, #e67e22);" +
@@ -357,8 +357,8 @@ public class GameView {
     }
     
     private void setupBorderGlowAnimation() {
-        // This method will be called to animate borders when it's player's turn
-        // For now, create a simple pulsing effect
+        // Phương thức này sẽ được gọi để tạo hiệu ứng viền khi đến lượt người chơi
+        // Hiện tại, tạo một hiệu ứng nhấp nháy đơn giản
         glowAnimation = new Timeline(
             new KeyFrame(Duration.ZERO, 
                 new KeyValue(timerBox.scaleXProperty(), 1.0),
@@ -379,20 +379,20 @@ public class GameView {
     private void drawBase() {
         GraphicsContext g = canvas.getGraphicsContext2D();
         
-        // Clear canvas
+        // Xóa canvas
         g.setFill(Color.TRANSPARENT);
         g.fillRect(0, 0, 900, 450);
         
-        // Draw hexagonal-style outer frames with gradient
+        // Vẽ khung ngoài theo phong cách lục giác với gradient
         drawHexagonalFrame(g, boxX1, boxY, boxSize);
         drawHexagonalFrame(g, boxX2, boxY, boxSize);
         
-        // Draw white background for images
+        // Vẽ nền trắng cho ảnh
         g.setFill(Color.WHITE);
         g.fillRoundRect(boxX1, boxY, boxSize, boxSize, 15, 15);
         g.fillRoundRect(boxX2, boxY, boxSize, boxSize, 15, 15);
         
-        // Draw images with clipping
+        // Vẽ ảnh với cắt xén
         if (leftImg != null) {
             g.save();
             g.beginPath();
@@ -419,13 +419,13 @@ public class GameView {
             g.fillRoundRect(boxX2, boxY, boxSize, boxSize, 15, 15);
         }
         
-        // Inner glow border (Riot-style)
+        // Viền phát sáng bên trong (phong cách Riot)
         g.setStroke(Color.web("#0ac8b9", 0.8));
         g.setLineWidth(4);
         g.strokeRoundRect(boxX1 + 2, boxY + 2, boxSize - 4, boxSize - 4, 15, 15);
         g.strokeRoundRect(boxX2 + 2, boxY + 2, boxSize - 4, boxSize - 4, 15, 15);
         
-        // Outer border
+        // Viền ngoài
         g.setStroke(Color.web("#FFFFFF"));
         g.setLineWidth(3);
         g.strokeRoundRect(boxX1, boxY, boxSize, boxSize, 15, 15);
@@ -433,7 +433,7 @@ public class GameView {
     }
     
     private void drawHexagonalFrame(GraphicsContext g, double x, double y, double size) {
-        // Draw outer glow effect
+        // Vẽ hiệu ứng phát sáng bên ngoài
         double padding = 12;
         g.setStroke(Color.web("#0ac8b9", 0.3));
         g.setLineWidth(8);
@@ -470,7 +470,7 @@ public class GameView {
                 long ms = ((Number)p.get("remainingTurnMs")).longValue();
                 remainingSeconds = (int) Math.max(0, ms / 1000);
                 
-                // Stop countdown if game is ending (remainingTurnMs = 0 or negative)
+                // Dừng đếm ngược nếu game sắp kết thúc (remainingTurnMs = 0 hoặc âm)
                 if (remainingSeconds <= 0 || ms <= 0) {
                     countdownTimer.stop();
                 } else {
@@ -500,13 +500,13 @@ public class GameView {
                     String finder = latestFind.get("finder") != null ? String.valueOf(latestFind.get("finder")) : "";
                     if (finder.equals(myUsername) && audioService != null) {
                         audioService.playCorrectSound();
-                        System.out.println("🔊 Playing correct sound - player found a difference!");
+                        System.out.println("🔊 Phát âm thanh đúng - người chơi tìm thấy điểm khác biệt!");
                     }
                     justClicked = false;
                 } else if (justClicked && found.size() == oldFoundCount) {
                     if (audioService != null) {
                         audioService.playWrongSound();
-                        System.out.println("🔊 Playing wrong sound - clicked but missed!");
+                        System.out.println("🔊 Phát âm thanh sai - click nhưng không trúng!");
                     }
                     justClicked = false;
                 } else if (turnChanged) {
@@ -515,7 +515,7 @@ public class GameView {
             }
             render();
         } catch (Exception e) {
-            System.err.println("Error in GameView.updateFromPayload: " + e.getMessage());
+            System.err.println("Lỗi trong GameView.updateFromPayload: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -523,12 +523,12 @@ public class GameView {
     private void updateTimerDisplay() {
         boolean isMyTurn = nextTurn.equals(myUsername);
         
-        // Update timer
+        // Cập nhật đồng hồ
         timerLabel.setText(String.valueOf(remainingSeconds));
         
-        // Update turn indicator
+        // Cập nhật chỉ báo lượt
         if (isMyTurn) {
-            turnIndicator.setText("⚡ YOUR TURN ⚡");
+            turnIndicator.setText("⚡ LƯỢT CỦA BẠN ⚡");
             turnIndicator.setStyle(
                 "-fx-font-family: 'Arial Black', sans-serif;" +
                 "-fx-font-size: 24px;" +
@@ -540,12 +540,12 @@ public class GameView {
                 "-fx-effect: dropshadow(gaussian, rgba(10,200,185,0.9), 20, 0.8, 0, 0);"
             );
             
-            // Start glow animation
+            // Bắt đầu hiệu ứng phát sáng
             if (glowAnimation != null && glowAnimation.getStatus() != Animation.Status.RUNNING) {
                 glowAnimation.play();
             }
         } else {
-            turnIndicator.setText("⏳ OPPONENT'S TURN");
+            turnIndicator.setText("⏳ LƯỢT ĐỐI THỦ");
             turnIndicator.setStyle(
                 "-fx-font-family: 'Arial', sans-serif;" +
                 "-fx-font-size: 20px;" +
@@ -559,7 +559,7 @@ public class GameView {
                 "-fx-border-width: 2;"
             );
             
-            // Stop glow animation
+            // Dừng hiệu ứng phát sáng
             if (glowAnimation != null) {
                 glowAnimation.stop();
                 timerBox.setScaleX(1.0);
@@ -567,7 +567,7 @@ public class GameView {
             }
         }
         
-        // Warning state for low time
+        // Trạng thái cảnh báo khi thời gian ít
         if (remainingSeconds <= 5 && isMyTurn) {
             timerBox.setStyle(
                 "-fx-background-color: linear-gradient(to bottom right, #ff4654, #c0392b);" +
@@ -607,7 +607,7 @@ public class GameView {
         drawBase();
         GraphicsContext g = canvas.getGraphicsContext2D();
         
-        // Draw found differences with Riot-style effects
+        // Vẽ các điểm khác biệt đã tìm thấy với hiệu ứng phong cách Riot
         for (Map<String,Object> d : found) {
             double x = ((Number)d.get("x")).doubleValue();
             double y = ((Number)d.get("y")).doubleValue();
@@ -621,35 +621,35 @@ public class GameView {
             Color glowColor;
             
             if (finder.equals(myUsername)) {
-                circleColor = Color.web("#0ac8b9"); // Cyan for player
+                circleColor = Color.web("#0ac8b9"); // Xanh lục cho người chơi
                 glowColor = Color.web("#0ac8b9", 0.4);
             } else if (finder.equals(playerA) || finder.equals(playerB)) {
-                circleColor = Color.web("#ff4654"); // Red for opponent
+                circleColor = Color.web("#ff4654"); // Đỏ cho đối thủ
                 glowColor = Color.web("#ff4654", 0.4);
             } else {
-                circleColor = Color.web("#f39c12"); // Orange for others
+                circleColor = Color.web("#f39c12"); // Cam cho người khác
                 glowColor = Color.web("#f39c12", 0.4);
             }
             
-            // Outer glow (largest)
+            // Phát sáng ngoài (lớn nhất)
             g.setStroke(glowColor.deriveColor(0, 1, 1, 0.1));
             g.setLineWidth(20);
             g.strokeOval(boxX1 + sx - rr - 8, boxY + sy - rr - 8, rr*2 + 16, rr*2 + 16);
             g.strokeOval(boxX2 + sx - rr - 8, boxY + sy - rr - 8, rr*2 + 16, rr*2 + 16);
             
-            // Middle glow
+            // Phát sáng giữa
             g.setStroke(glowColor.deriveColor(0, 1, 1, 0.3));
             g.setLineWidth(12);
             g.strokeOval(boxX1 + sx - rr - 4, boxY + sy - rr - 4, rr*2 + 8, rr*2 + 8);
             g.strokeOval(boxX2 + sx - rr - 4, boxY + sy - rr - 4, rr*2 + 8, rr*2 + 8);
             
-            // Inner glow
+            // Phát sáng trong
             g.setStroke(circleColor.deriveColor(0, 1, 1.2, 0.6));
             g.setLineWidth(7);
             g.strokeOval(boxX1 + sx - rr - 1, boxY + sy - rr - 1, rr*2 + 2, rr*2 + 2);
             g.strokeOval(boxX2 + sx - rr - 1, boxY + sy - rr - 1, rr*2 + 2, rr*2 + 2);
             
-            // Main circle (bright)
+            // Vòng tròn chính (sáng)
             g.setStroke(circleColor);
             g.setLineWidth(4);
             g.strokeOval(boxX1 + sx - rr, boxY + sy - rr, rr*2, rr*2);
@@ -657,24 +657,24 @@ public class GameView {
         }
         
         
-        // Update player names and scores
+        // Cập nhật tên và điểm số người chơi
         updatePlayerInfo();
     }
     
     private void updatePlayerInfo() {
-        // Update player names
+        // Cập nhật tên người chơi
         if (!playerA.isEmpty()) {
-            playerANameLabel.setText(playerA.equals(myUsername) ? playerA + " (YOU)" : playerA);
+            playerANameLabel.setText(playerA.equals(myUsername) ? playerA + " (BẠN)" : playerA);
         }
         if (!playerB.isEmpty()) {
-            playerBNameLabel.setText(playerB.equals(myUsername) ? playerB + " (YOU)" : playerB);
+            playerBNameLabel.setText(playerB.equals(myUsername) ? playerB + " (BẠN)" : playerB);
         }
         
-        // Update scores
+        // Cập nhật điểm số
         playerAScoreLabel.setText(String.valueOf(scoreA));
         playerBScoreLabel.setText(String.valueOf(scoreB));
         
-        // Highlight current player's box
+        // Làm nổi bật hộp người chơi hiện tại
         if (playerA.equals(myUsername)) {
             styleActivePlayer(playerAAvatar, true);
             styleActivePlayer(playerBAvatar, false);
@@ -701,30 +701,30 @@ public class GameView {
     }
 
     public void setImages(byte[] leftBytes, byte[] rightBytes, int width, int height) {
-        System.out.println("GameView.setImages called: leftBytes=" + (leftBytes != null ? leftBytes.length : "null") + ", rightBytes=" + (rightBytes != null ? rightBytes.length : "null") + ", w=" + width + ", h=" + height);
+        System.out.println("GameView.setImages được gọi: leftBytes=" + (leftBytes != null ? leftBytes.length : "null") + ", rightBytes=" + (rightBytes != null ? rightBytes.length : "null") + ", w=" + width + ", h=" + height);
         this.imgW = width > 0 ? width : this.imgW;
         this.imgH = height > 0 ? height : this.imgH;
         try {
             this.leftImg = leftBytes != null ? new Image(new ByteArrayInputStream(leftBytes)) : null;
             this.rightImg = rightBytes != null ? new Image(new ByteArrayInputStream(rightBytes)) : null;
-            System.out.println("Images created: leftImg=" + (leftImg != null) + ", rightImg=" + (rightImg != null));
-            if (leftImg != null) System.out.println("Left image size: " + leftImg.getWidth() + "x" + leftImg.getHeight());
-            if (rightImg != null) System.out.println("Right image size: " + rightImg.getWidth() + "x" + rightImg.getHeight());
+            System.out.println("Ảnh được tạo: leftImg=" + (leftImg != null) + ", rightImg=" + (rightImg != null));
+            if (leftImg != null) System.out.println("Kích thước ảnh trái: " + leftImg.getWidth() + "x" + leftImg.getHeight());
+            if (rightImg != null) System.out.println("Kích thước ảnh phải: " + rightImg.getWidth() + "x" + rightImg.getHeight());
         } catch (Exception e) {
-            System.err.println("Error creating Image from bytes: " + e.getMessage());
+            System.err.println("Lỗi tạo Image từ bytes: " + e.getMessage());
             e.printStackTrace();
         }
         render();
     }
     
     public void cleanup() {
-        // Stop all animations and timers
+        // Dừng tất cả hoạt hình và đồng hồ
         if (countdownTimer != null) {
             countdownTimer.stop();
         }
         if (glowAnimation != null) {
             glowAnimation.stop();
         }
-        System.out.println("GameView cleanup completed");
+        System.out.println("GameView cleanup hoàn thành");
     }
 }
