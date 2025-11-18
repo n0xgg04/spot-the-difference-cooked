@@ -110,7 +110,7 @@ public class GameView {
         
         // Thêm chỉ báo lượt phía trên canvas
         turnIndicator.setStyle(
-            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
             "-fx-font-size: 24px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: #FFFFFF;" +
@@ -209,7 +209,7 @@ public class GameView {
         );
         
         timerLabel.setStyle(
-            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
             "-fx-font-size: 32px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: #0ac8b9;" +
@@ -219,7 +219,7 @@ public class GameView {
         
         Label vsLabel = new Label("VS");
         vsLabel.setStyle(
-            "-fx-font-family: 'Impact', 'Arial Black', sans-serif;" +
+            "-fx-font-family: 'Impact', 'Segoe UI', 'Tahoma', sans-serif;" +
             "-fx-font-size: 20px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: #ff4654;" +
@@ -239,7 +239,7 @@ public class GameView {
         // Nút thoát
         javafx.scene.control.Button quitButton = new javafx.scene.control.Button("✖ THOÁT");
         quitButton.setStyle(
-            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
             "-fx-font-size: 14px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: #ffffff;" +
@@ -253,7 +253,7 @@ public class GameView {
             "-fx-effect: dropshadow(gaussian, rgba(232,64,87,0.6), 10, 0.7, 0, 3);"
         );
         quitButton.setOnMouseEntered(e -> quitButton.setStyle(
-            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
             "-fx-font-size: 14px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: #ffffff;" +
@@ -267,7 +267,7 @@ public class GameView {
             "-fx-effect: dropshadow(gaussian, rgba(255,84,108,0.9), 15, 0.8, 0, 0);"
         ));
         quitButton.setOnMouseExited(e -> quitButton.setStyle(
-            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
             "-fx-font-size: 14px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: #ffffff;" +
@@ -317,7 +317,7 @@ public class GameView {
         
         // Nhãn tên
         nameLabel.setStyle(
-            "-fx-font-family: 'Arial', sans-serif;" +
+            "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
             "-fx-font-size: 16px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: #FFFFFF;" +
@@ -335,7 +335,7 @@ public class GameView {
         );
         
         scoreLabel.setStyle(
-            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
             "-fx-font-size: 18px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: #FFFFFF;" +
@@ -530,7 +530,7 @@ public class GameView {
         if (isMyTurn) {
             turnIndicator.setText("⚡ LƯỢT CỦA BẠN ⚡");
             turnIndicator.setStyle(
-                "-fx-font-family: 'Arial Black', sans-serif;" +
+                "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
                 "-fx-font-size: 24px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: #FFFFFF;" +
@@ -547,7 +547,7 @@ public class GameView {
         } else {
             turnIndicator.setText("⏳ LƯỢT ĐỐI THỦ");
             turnIndicator.setStyle(
-                "-fx-font-family: 'Arial', sans-serif;" +
+                "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
                 "-fx-font-size: 20px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: #95a5a6;" +
@@ -578,7 +578,7 @@ public class GameView {
                 "-fx-effect: dropshadow(gaussian, rgba(255,70,84,0.9), 25, 0.8, 0, 0);"
             );
             timerLabel.setStyle(
-                "-fx-font-family: 'Arial Black', sans-serif;" +
+                "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
                 "-fx-font-size: 32px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: #FFFFFF;" +
@@ -594,7 +594,7 @@ public class GameView {
                 "-fx-effect: dropshadow(gaussian, rgba(10,200,185,0.6), 20, 0.7, 0, 0);"
             );
             timerLabel.setStyle(
-                "-fx-font-family: 'Arial Black', sans-serif;" +
+                "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
                 "-fx-font-size: 32px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: #0ac8b9;" +
@@ -729,7 +729,7 @@ public class GameView {
         // Khi game kết thúc, hiển thị "Your turn" thay vì "Lượt của bạn"
         turnIndicator.setText("YOUR TURN");
         turnIndicator.setStyle(
-            "-fx-font-family: 'Arial Black', sans-serif;" +
+            "-fx-font-family: 'Segoe UI', 'Tahoma', sans-serif;" +
             "-fx-font-size: 24px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: #FFFFFF;" +
