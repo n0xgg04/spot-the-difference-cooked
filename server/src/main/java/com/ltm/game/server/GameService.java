@@ -205,28 +205,28 @@ public class GameService {
     private void scheduleTurnTimeout(GameRoom room) {
         room.nextDeadline = System.currentTimeMillis() + turnSeconds * 1000L;
         long capturedSeq = room.turnSeq;
-        System.out.println("📅 Scheduling timeout for seq=" + capturedSeq + ", turn=" + room.currentTurn + ", delay=" + turnSeconds + "s");
+        System.out.println("Scheduling timeout for seq=" + capturedSeq + ", turn=" + room.currentTurn + ", delay=" + turnSeconds + "s");
         scheduler.schedule(() -> onTimeout(room.id, capturedSeq), turnSeconds, TimeUnit.SECONDS);
     }
 
     private void onTimeout(String roomId, long seq) {
         GameRoom room = rooms.get(roomId);
         if (room == null) {
-            System.out.println("⏰ Timeout fired but room not found: " + roomId);
+            System.out.println("Timeout fired but room not found: " + roomId);
             return;
         }
         synchronized (room) {
-            System.out.println("⏰ Timeout fired: seq=" + seq + ", current room.turnSeq=" + room.turnSeq + ", finished=" + room.finished);
+            System.out.println("Timeout fired: seq=" + seq + ", current room.turnSeq=" + room.turnSeq + ", finished=" + room.finished);
             if (room.turnSeq != seq || room.finished) {
                 System.out.println("  ➡ Timeout IGNORED (stale or finished)");
                 return;
             }
 
-            System.out.println("  ➡ Timeout VALID! Auto-switching turn from " + room.currentTurn);
+            System.out.println("Timeout VALID! Auto-switching turn from " + room.currentTurn);
 
             room.currentTurn = room.currentTurn.equals(room.playerA) ? room.playerB : room.playerA;
             room.turnSeq++;
-            System.out.println("  ➡ Turn auto-switched to: " + room.currentTurn + " (new seq=" + room.turnSeq + ")");
+            System.out.println("Turn auto-switched to: " + room.currentTurn + " (new seq=" + room.turnSeq + ")");
 
             scheduleTurnTimeout(room);
             broadcastUpdate(room, turnSeconds * 1000);
@@ -236,7 +236,7 @@ public class GameService {
     private void endGame(GameRoom room, String reason) {
         room.finished = true;
 
-        System.out.println("🏁 endGame() called");
+        System.out.println("endGame() called");
         System.out.println("   Reason: " + reason);
         System.out.println("   PlayerA: " + room.playerA + " = " + room.scoreA);
         System.out.println("   PlayerB: " + room.playerB + " = " + room.scoreB);
@@ -283,7 +283,7 @@ public class GameService {
         payload.put("result", winner);
         payload.put("found", room.found);
 
-        System.out.println("🏁 Sending GAME_END with payload: " + payload);
+        System.out.println("Sending GAME_END with payload: " + payload);
         sendToPlayers(room, new Message(Protocol.GAME_END, payload));
         rooms.remove(room.id);
         lobby.setBusy(room.playerA, false);
@@ -380,8 +380,8 @@ public class GameService {
         }
 
         boolean tryHit(double x, double y, String username) {
-            System.out.println("🎯 Checking hit at click position: (" + x + ", " + y + ")");
-            System.out.println("📍 Total differences to check: " + differences.size());
+            System.out.println("Checking hit at click position: (" + x + ", " + y + ")");
+            System.out.println("Total differences to check: " + differences.size());
 
             for (int i = 0; i < differences.size(); i++) {
                 Map<String,Object> d = differences.get(i);
@@ -402,8 +402,9 @@ public class GameService {
                 System.out.println("    Distance from click: " + String.format("%.2f", distance) + " (need <= " + r + ")");
 
                 if (dx*dx + dy*dy <= r*r) {
-                    System.out.println("    ✅ HIT! Adding to found list.");
+                    System.out.println("HIT! Adding to found list.");
 
+                    
                     Map<String,Object> foundDiff = new HashMap<>(d);
                     foundDiff.put("finder", username);
                     found.add(foundDiff);
@@ -411,10 +412,10 @@ public class GameService {
                     if (username.equals(playerA)) scoreA++; else scoreB++;
                     return true;
                 } else {
-                    System.out.println("    ❌ TOO FAR");
+                    System.out.println("TOO FAR");
                 }
             }
-            System.out.println("❌ No hit found at (" + x + ", " + y + ")");
+            System.out.println("No hit found at (" + x + ", " + y + ")");
             return false;
         }
 

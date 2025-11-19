@@ -28,7 +28,7 @@ public class MatchRepository {
             result = scoreA > scoreB ? "A" : scoreB > scoreA ? "B" : "DRAW";
         }
         
-        System.out.println("💾 Saving match: playerA=" + playerAName + " (id=" + playerAId + ", score=" + scoreA + "), " +
+        System.out.println("Saving match: playerA=" + playerAName + " (id=" + playerAId + ", score=" + scoreA + "), " +
                            "playerB=" + playerBName + " (id=" + playerBId + ", score=" + scoreB + "), " +
                            "winner=" + winner + ", result=" + result);
         
@@ -40,7 +40,7 @@ public class MatchRepository {
             ps.setInt(4, scoreB);
             ps.setString(5, result);
             ps.executeUpdate();
-            System.out.println("✅ Match saved successfully");
+            System.out.println("Match saved successfully");
         }
     }
 }
