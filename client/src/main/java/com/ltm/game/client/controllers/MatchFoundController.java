@@ -47,22 +47,18 @@ public class MatchFoundController {
     private Runnable onAcceptCallback;
 
     public void initialize() {
-        // Start countdown timer
         startCountdown();
         
-        // Start spinner animations
         startSpinnerAnimations();
     }
 
     private void startSpinnerAnimations() {
-        // Outer circle - rotate clockwise
         spinnerOuterRotation = new RotateTransition(javafx.util.Duration.seconds(3), spinnerOuter);
         spinnerOuterRotation.setByAngle(360);
         spinnerOuterRotation.setCycleCount(Animation.INDEFINITE);
         spinnerOuterRotation.setInterpolator(Interpolator.LINEAR);
         spinnerOuterRotation.play();
 
-        // Inner circle - rotate counter-clockwise
         spinnerInnerRotation = new RotateTransition(javafx.util.Duration.seconds(2), spinnerInner);
         spinnerInnerRotation.setByAngle(-360);
         spinnerInnerRotation.setCycleCount(Animation.INDEFINITE);
@@ -79,7 +75,6 @@ public class MatchFoundController {
             countdownLabel.setText(String.valueOf(remainingSeconds));
 
             if (remainingSeconds <= 0) {
-                // Timeout - auto decline
                 if (!accepted && !declined) {
                     handleDecline();
                 }
@@ -104,7 +99,6 @@ public class MatchFoundController {
     public void setDialogStage(Stage stage) {
         this.dialogStage = stage;
 
-        // Close dialog on stage close
         stage.setOnCloseRequest(e -> {
             if (!accepted && !declined) {
                 sendDeclineResponse();
@@ -116,10 +110,8 @@ public class MatchFoundController {
     public void setOwnerStage(Stage ownerStage) {
         this.ownerStage = ownerStage;
         
-        // Center dialog when first shown
         Platform.runLater(() -> centerDialog());
         
-        // Position tracking - follow game window
         if (ownerStage != null) {
             Runnable centerDialog = this::centerDialog;
             
@@ -128,7 +120,6 @@ public class MatchFoundController {
             ownerStage.widthProperty().addListener((obs, old, newVal) -> centerDialog.run());
             ownerStage.heightProperty().addListener((obs, old, newVal) -> centerDialog.run());
             
-            // Focus tracking - z-order control
             ownerStage.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
                 if (dialogStage != null && !dialogStage.isIconified()) {
                     if (isNowFocused) {
@@ -164,14 +155,11 @@ public class MatchFoundController {
         acceptButton.setDisable(true);
         declineButton.setDisable(true);
 
-        // Send accept to server
         networkClient.send(new Message(Protocol.MATCH_ACCEPT, Map.of()));
 
-        // Close this dialog and show waiting dialog
         cleanup();
         closeDialog();
         
-        // Trigger callback to show waiting screen
         if (onAcceptCallback != null) {
             onAcceptCallback.run();
         }
@@ -202,11 +190,9 @@ public class MatchFoundController {
     }
 
     private void cleanup() {
-        // Stop countdown timer
         if (countdownTimeline != null) {
             countdownTimeline.stop();
         }
-        // Stop spinner animations
         if (spinnerOuterRotation != null) {
             spinnerOuterRotation.stop();
         }
@@ -224,8 +210,6 @@ public class MatchFoundController {
 
     public void onWaitingForOpponent() {
         Platform.runLater(() -> {
-            // This is called when opponent also accepted
-            // The waiting message is already shown when user clicks accept
             waitingLabel.setText("Đang chuẩn bị trận đấu...");
         });
     }

@@ -31,7 +31,6 @@ public class GameView {
     private final StackPane root = new StackPane();
     private final Canvas canvas = new Canvas(900, 450);
     
-    // Player info labels
     private final Label playerANameLabel = new Label();
     private final Label playerBNameLabel = new Label();
     private final Label playerAScoreLabel = new Label("0");
@@ -39,12 +38,10 @@ public class GameView {
     private final Circle playerAAvatar = new Circle(25);
     private final Circle playerBAvatar = new Circle(25);
     
-    // Timer and turn indicator
     private final Label timerLabel = new Label("15");
     private final Label turnIndicator = new Label("YOUR TURN");
     private final StackPane timerBox = new StackPane();
     
-    // Animated borders for images
     private final Rectangle leftBorderGlow = new Rectangle();
     private final Rectangle rightBorderGlow = new Rectangle();
     private Timeline glowAnimation;
@@ -77,7 +74,6 @@ public class GameView {
             audioService.loadGameSounds();
         }
         
-        // Background with dark gradient overlay
         ImageView bgImageView = new ImageView();
         try {
             Image bgImage = new Image(getClass().getResourceAsStream("/images/v2/forest-8227410.jpg"));
@@ -89,26 +85,21 @@ public class GameView {
             System.err.println("Could not load background image: " + e.getMessage());
         }
         
-        // Dark overlay for better contrast
         Pane overlay = new Pane();
         overlay.setStyle("-fx-background-color: rgba(10,15,25,0.75);");
         overlay.prefWidthProperty().bind(root.widthProperty());
         overlay.prefHeightProperty().bind(root.heightProperty());
         
-        // Main layout
         BorderPane mainLayout = new BorderPane();
         mainLayout.setStyle("-fx-background-color: transparent;");
         
-        // Create Riot-style header
         VBox header = createRiotStyleHeader();
         mainLayout.setTop(header);
         
-        // Center: Canvas with turn indicator
         VBox centerContainer = new VBox(15);
         centerContainer.setAlignment(Pos.CENTER);
         centerContainer.setPadding(new Insets(10, 15, 15, 15));
         
-        // Add turn indicator above canvas
         turnIndicator.setStyle(
             "-fx-font-family: 'Arial Black', sans-serif;" +
             "-fx-font-size: 24px;" +
@@ -125,7 +116,6 @@ public class GameView {
         
         root.getChildren().addAll(bgImageView, overlay, mainLayout);
         
-        // Initialize countdown timer
         countdownTimer = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             if (remainingSeconds > 0) {
                 remainingSeconds--;
@@ -134,15 +124,11 @@ public class GameView {
         }));
         countdownTimer.setCycleCount(Timeline.INDEFINITE);
         
-        // Setup animated border glow
         setupBorderGlowAnimation();
         
-        // Initial draw
         drawBase();
         
-        // Canvas click handler
         canvas.setOnMouseClicked(e -> {
-            // Check if it's my turn
             if (!nextTurn.equals(myUsername)) {
                 System.out.println("Not your turn! Current turn: " + nextTurn);
                 return;
@@ -153,7 +139,6 @@ public class GameView {
             System.out.println("Canvas clicked at: (" + x + ", " + y + ")");
             Double mappedX = null, mappedY = null;
             
-            // Only allow clicking on LEFT box (modified image), not RIGHT box (original image)
             if (x >= boxX1 && x <= boxX1 + boxSize && y >= boxY && y <= boxY + boxSize) {
                 double lx = x - boxX1; double ly = y - boxY;
                 mappedX = lx * (imgW / boxSize);
@@ -184,19 +169,15 @@ public class GameView {
             "-fx-border-width: 0 0 2 0;"
         );
         
-        // Top row: Player vs Player with timer in center
         HBox topRow = new HBox(20);
         topRow.setAlignment(Pos.CENTER);
         topRow.setPadding(new Insets(5, 0, 10, 0));
         
-        // Player A (Left)
         HBox playerABox = createPlayerBox(playerAAvatar, playerANameLabel, playerAScoreLabel, true);
         
-        // VS + Timer (Center)
         VBox centerBox = new VBox(5);
         centerBox.setAlignment(Pos.CENTER);
         
-        // Timer with hexagonal style
         timerBox.setMinSize(80, 80);
         timerBox.setMaxSize(80, 80);
         timerBox.setStyle(
@@ -228,7 +209,6 @@ public class GameView {
         
         centerBox.getChildren().addAll(timerBox, vsLabel);
         
-        // Player B (Right)
         HBox playerBBox = createPlayerBox(playerBAvatar, playerBNameLabel, playerBScoreLabel, false);
         
         Region leftSpacer = new Region();
@@ -236,7 +216,6 @@ public class GameView {
         HBox.setHgrow(leftSpacer, Priority.ALWAYS);
         HBox.setHgrow(rightSpacer, Priority.ALWAYS);
         
-        // Quit button
         javafx.scene.control.Button quitButton = new javafx.scene.control.Button("✖ THOÁT");
         quitButton.setStyle(
             "-fx-font-family: 'Arial Black', sans-serif;" +
@@ -305,7 +284,6 @@ public class GameView {
             "-fx-border-width: 1;"
         );
         
-        // Avatar circle with gradient
         avatar.setFill(new LinearGradient(
             0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
             new Stop(0, Color.web("#667eea")),
@@ -315,7 +293,6 @@ public class GameView {
         avatar.setStrokeWidth(2.5);
         avatar.setEffect(new DropShadow(15, Color.web("#667eea", 0.6)));
         
-        // Name label
         nameLabel.setStyle(
             "-fx-font-family: 'Arial', sans-serif;" +
             "-fx-font-size: 16px;" +
@@ -325,7 +302,6 @@ public class GameView {
         );
         nameLabel.setText("Player");
         
-        // Score box
         StackPane scoreBox = new StackPane();
         scoreBox.setStyle(
             "-fx-background-color: linear-gradient(to bottom, #f39c12, #e67e22);" +
@@ -357,8 +333,6 @@ public class GameView {
     }
     
     private void setupBorderGlowAnimation() {
-        // This method will be called to animate borders when it's player's turn
-        // For now, create a simple pulsing effect
         glowAnimation = new Timeline(
             new KeyFrame(Duration.ZERO, 
                 new KeyValue(timerBox.scaleXProperty(), 1.0),
@@ -379,20 +353,16 @@ public class GameView {
     private void drawBase() {
         GraphicsContext g = canvas.getGraphicsContext2D();
         
-        // Clear canvas
         g.setFill(Color.TRANSPARENT);
         g.fillRect(0, 0, 900, 450);
         
-        // Draw hexagonal-style outer frames with gradient
         drawHexagonalFrame(g, boxX1, boxY, boxSize);
         drawHexagonalFrame(g, boxX2, boxY, boxSize);
         
-        // Draw white background for images
         g.setFill(Color.WHITE);
         g.fillRoundRect(boxX1, boxY, boxSize, boxSize, 15, 15);
         g.fillRoundRect(boxX2, boxY, boxSize, boxSize, 15, 15);
         
-        // Draw images with clipping
         if (leftImg != null) {
             g.save();
             g.beginPath();
@@ -419,13 +389,11 @@ public class GameView {
             g.fillRoundRect(boxX2, boxY, boxSize, boxSize, 15, 15);
         }
         
-        // Inner glow border (Riot-style)
         g.setStroke(Color.web("#0ac8b9", 0.8));
         g.setLineWidth(4);
         g.strokeRoundRect(boxX1 + 2, boxY + 2, boxSize - 4, boxSize - 4, 15, 15);
         g.strokeRoundRect(boxX2 + 2, boxY + 2, boxSize - 4, boxSize - 4, 15, 15);
         
-        // Outer border
         g.setStroke(Color.web("#FFFFFF"));
         g.setLineWidth(3);
         g.strokeRoundRect(boxX1, boxY, boxSize, boxSize, 15, 15);
@@ -433,7 +401,6 @@ public class GameView {
     }
     
     private void drawHexagonalFrame(GraphicsContext g, double x, double y, double size) {
-        // Draw outer glow effect
         double padding = 12;
         g.setStroke(Color.web("#0ac8b9", 0.3));
         g.setLineWidth(8);
@@ -470,7 +437,6 @@ public class GameView {
                 long ms = ((Number)p.get("remainingTurnMs")).longValue();
                 remainingSeconds = (int) Math.max(0, ms / 1000);
                 
-                // Stop countdown if game is ending (remainingTurnMs = 0 or negative)
                 if (remainingSeconds <= 0 || ms <= 0) {
                     countdownTimer.stop();
                 } else {
@@ -523,10 +489,8 @@ public class GameView {
     private void updateTimerDisplay() {
         boolean isMyTurn = nextTurn.equals(myUsername);
         
-        // Update timer
         timerLabel.setText(String.valueOf(remainingSeconds));
         
-        // Update turn indicator
         if (isMyTurn) {
             turnIndicator.setText("⚡ YOUR TURN ⚡");
             turnIndicator.setStyle(
@@ -540,7 +504,6 @@ public class GameView {
                 "-fx-effect: dropshadow(gaussian, rgba(10,200,185,0.9), 20, 0.8, 0, 0);"
             );
             
-            // Start glow animation
             if (glowAnimation != null && glowAnimation.getStatus() != Animation.Status.RUNNING) {
                 glowAnimation.play();
             }
@@ -559,7 +522,6 @@ public class GameView {
                 "-fx-border-width: 2;"
             );
             
-            // Stop glow animation
             if (glowAnimation != null) {
                 glowAnimation.stop();
                 timerBox.setScaleX(1.0);
@@ -567,7 +529,6 @@ public class GameView {
             }
         }
         
-        // Warning state for low time
         if (remainingSeconds <= 5 && isMyTurn) {
             timerBox.setStyle(
                 "-fx-background-color: linear-gradient(to bottom right, #ff4654, #c0392b);" +
@@ -607,7 +568,6 @@ public class GameView {
         drawBase();
         GraphicsContext g = canvas.getGraphicsContext2D();
         
-        // Draw found differences with Riot-style effects
         for (Map<String,Object> d : found) {
             double x = ((Number)d.get("x")).doubleValue();
             double y = ((Number)d.get("y")).doubleValue();
@@ -631,25 +591,21 @@ public class GameView {
                 glowColor = Color.web("#f39c12", 0.4);
             }
             
-            // Outer glow (largest)
             g.setStroke(glowColor.deriveColor(0, 1, 1, 0.1));
             g.setLineWidth(20);
             g.strokeOval(boxX1 + sx - rr - 8, boxY + sy - rr - 8, rr*2 + 16, rr*2 + 16);
             g.strokeOval(boxX2 + sx - rr - 8, boxY + sy - rr - 8, rr*2 + 16, rr*2 + 16);
             
-            // Middle glow
             g.setStroke(glowColor.deriveColor(0, 1, 1, 0.3));
             g.setLineWidth(12);
             g.strokeOval(boxX1 + sx - rr - 4, boxY + sy - rr - 4, rr*2 + 8, rr*2 + 8);
             g.strokeOval(boxX2 + sx - rr - 4, boxY + sy - rr - 4, rr*2 + 8, rr*2 + 8);
             
-            // Inner glow
             g.setStroke(circleColor.deriveColor(0, 1, 1.2, 0.6));
             g.setLineWidth(7);
             g.strokeOval(boxX1 + sx - rr - 1, boxY + sy - rr - 1, rr*2 + 2, rr*2 + 2);
             g.strokeOval(boxX2 + sx - rr - 1, boxY + sy - rr - 1, rr*2 + 2, rr*2 + 2);
             
-            // Main circle (bright)
             g.setStroke(circleColor);
             g.setLineWidth(4);
             g.strokeOval(boxX1 + sx - rr, boxY + sy - rr, rr*2, rr*2);
@@ -657,12 +613,10 @@ public class GameView {
         }
         
         
-        // Update player names and scores
         updatePlayerInfo();
     }
     
     private void updatePlayerInfo() {
-        // Update player names
         if (!playerA.isEmpty()) {
             playerANameLabel.setText(playerA.equals(myUsername) ? playerA + " (YOU)" : playerA);
         }
@@ -670,11 +624,9 @@ public class GameView {
             playerBNameLabel.setText(playerB.equals(myUsername) ? playerB + " (YOU)" : playerB);
         }
         
-        // Update scores
         playerAScoreLabel.setText(String.valueOf(scoreA));
         playerBScoreLabel.setText(String.valueOf(scoreB));
         
-        // Highlight current player's box
         if (playerA.equals(myUsername)) {
             styleActivePlayer(playerAAvatar, true);
             styleActivePlayer(playerBAvatar, false);
@@ -718,7 +670,6 @@ public class GameView {
     }
     
     public void cleanup() {
-        // Stop all animations and timers
         if (countdownTimer != null) {
             countdownTimer.stop();
         }

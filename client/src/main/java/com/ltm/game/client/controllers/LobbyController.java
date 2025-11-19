@@ -331,7 +331,6 @@ public class LobbyController {
             VBox cancelButtonContainer = (VBox) root.lookup("#cancelButtonContainer");
             VBox actionButtons = (VBox) root.lookup("#actionButtons");
             
-            // Set initial state: Searching
             if (titleLabel != null) {
                 titleLabel.setText("ĐANG TÌM TRẬN");
             }
@@ -339,7 +338,6 @@ public class LobbyController {
                 queueTimerLabel.setText("Đang tìm đối thủ...");
             }
             
-            // Get circle nodes for animation
             javafx.scene.shape.Circle outerRing = (javafx.scene.shape.Circle) root.lookup("#outerRing");
             javafx.scene.shape.Circle innerRing = (javafx.scene.shape.Circle) root.lookup("#innerRing");
             
@@ -349,8 +347,6 @@ public class LobbyController {
             
             queueDialog = new Stage();
             Stage ownerStage = (Stage) rootPane.getScene().getWindow();
-            // DON'T use initOwner - it creates dependency that blocks interaction
-            // queueDialog.initOwner(ownerStage); 
             queueDialog.setTitle("Đang tìm trận");
             queueDialog.setResizable(false);
             queueDialog.initStyle(javafx.stage.StageStyle.TRANSPARENT);
@@ -366,7 +362,6 @@ public class LobbyController {
             );
             queueDialog.setScene(dialogScene);
             
-            // Start rotation animations for circles
             if (outerRing != null) {
                 javafx.animation.RotateTransition rotateOuter = new javafx.animation.RotateTransition(javafx.util.Duration.seconds(8), outerRing);
                 rotateOuter.setFromAngle(0);
@@ -389,7 +384,6 @@ public class LobbyController {
             
             queueDialog.show();
             
-            // Hàm để căn giữa dialog
             Runnable centerDialog = () -> {
                 if (queueDialog != null && queueDialog.isShowing()) {
                     queueDialog.setX(ownerStage.getX() + (ownerStage.getWidth() - queueDialog.getWidth()) / 2);
@@ -397,10 +391,8 @@ public class LobbyController {
                 }
             };
             
-            // Căn giữa dialog ban đầu
             centerDialog.run();
             
-            // Listener để dialog tự động di chuyển theo cửa sổ game
             ownerStage.xProperty().addListener((obs, oldVal, newVal) -> {
                 if (queueDialog != null && queueDialog.isShowing()) {
                     centerDialog.run();
@@ -422,7 +414,6 @@ public class LobbyController {
                 }
             });
             
-            // Listener để điều khiển z-order khi game window thay đổi focus
             ownerStage.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
                 if (queueDialog != null && queueDialog.isShowing()) {
                     if (isNowFocused) {
@@ -558,7 +549,6 @@ public class LobbyController {
             queueDialog = null;
         }
 
-        // Stop all background music and play match found sound only
         if (audioService != null) {
             audioService.stopBackgroundMusic();
             audioService.playMatchFoundSound();
@@ -586,7 +576,6 @@ public class LobbyController {
             matchFoundController.setOpponentName(opponent);
 
             matchFoundDialog = new Stage();
-            // No initOwner - independent Stage for full window control
             matchFoundDialog.setTitle("Tìm Thấy Trận");
             matchFoundDialog.setResizable(false);
             matchFoundDialog.initStyle(javafx.stage.StageStyle.TRANSPARENT);
@@ -597,7 +586,6 @@ public class LobbyController {
             matchFoundController.setDialogStage(matchFoundDialog);
             matchFoundController.setOwnerStage((Stage) rootPane.getScene().getWindow());
             
-            // Set callback to show waiting dialog when user accepts
             matchFoundController.setOnAcceptCallback(() -> showMatchWaitingDialog(opponent));
 
             Scene dialogScene = new Scene(root);
@@ -620,7 +608,6 @@ public class LobbyController {
             return;
         }
 
-        // Stop lobby music when entering waiting screen
         if (audioService != null) {
             audioService.stopBackgroundMusic();
         }
@@ -664,7 +651,6 @@ public class LobbyController {
 
     public void onMatchReady() {
         javafx.application.Platform.runLater(() -> {
-            // Stop lobby music when both clients are ready
             if (audioService != null) {
                 audioService.stopBackgroundMusic();
             }
@@ -690,12 +676,10 @@ public class LobbyController {
             String reason = payload != null ? String.valueOf(payload.get("reason")) : "";
             String decliner = payload != null ? String.valueOf(payload.get("decliner")) : "";
 
-            // Resume lobby music
             if (audioService != null) {
                 audioService.playLobbyMusic();
             }
 
-            // Close waiting dialog if open
             if (matchWaitingController != null) {
                 matchWaitingController.onMatchDeclined(reason);
                 matchWaitingController = null;
@@ -705,7 +689,6 @@ public class LobbyController {
                 matchWaitingDialog = null;
             }
 
-            // Close match found dialog if open
             if (matchFoundController != null) {
                 matchFoundController.onOpponentDeclined(reason, decliner);
             } else {
@@ -796,7 +779,6 @@ public class LobbyController {
     }
 
     public void showInviteDialog(String fromUser) {
-        // Create a non-modal, owner-attached invite dialog that stays inside the app window
         Stage owner = (Stage) rootPane.getScene().getWindow();
         Stage inviteDialog = new Stage();
         inviteDialog.initOwner(owner);
@@ -804,7 +786,6 @@ public class LobbyController {
         inviteDialog.initStyle(javafx.stage.StageStyle.TRANSPARENT);
         inviteDialog.setResizable(false);
 
-        // Compact content styled to match Riot aesthetic; will scale with owner window
         VBox dialogContent = new VBox(12);
         dialogContent.setAlignment(Pos.CENTER);
         dialogContent.setPadding(new Insets(18, 22, 18, 22));
@@ -849,7 +830,6 @@ public class LobbyController {
             "-fx-padding: 8px 18px; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 6, 0.5, 0, 2);"
         );
 
-        // Countdown and auto-decline
         final int[] countdown = {10};
         final Timeline countdownTimer = new Timeline();
         countdownTimer.getKeyFrames().add(new KeyFrame(Duration.seconds(1), e -> {
@@ -861,7 +841,6 @@ public class LobbyController {
                 }
             } else {
                 countdownTimer.stop();
-                // send decline
                 if (networkClient != null) {
                     networkClient.send(new Message(Protocol.INVITE_RESPONSE, Map.of("fromUser", fromUser, "accepted", false)));
                 }
@@ -889,7 +868,6 @@ public class LobbyController {
         buttonBox.getChildren().addAll(acceptBtn, declineBtn);
         dialogContent.getChildren().addAll(iconLabel, headerLabel, messageLabel, countdownLabel, buttonBox);
 
-        // Initial sizing relative to owner
         double fracW = 0.42; double fracH = 0.26;
         double dialogW = Math.max(320, owner.getWidth() * fracW);
         double dialogH = Math.max(160, owner.getHeight() * fracH);
@@ -898,7 +876,6 @@ public class LobbyController {
         dialogScene.setFill(Color.TRANSPARENT);
         inviteDialog.setScene(dialogScene);
 
-        // Position centered over owner and keep proportional on resize
         Runnable positionDialog = () -> {
             double newW = Math.max(320, owner.getWidth() * fracW);
             double newH = Math.max(160, owner.getHeight() * fracH);
@@ -908,7 +885,6 @@ public class LobbyController {
             inviteDialog.setY(owner.getY() + (owner.getHeight() - newH) / 2);
         };
 
-        // Listeners to keep dialog positioned and hidden when owner minimized
         javafx.beans.value.ChangeListener<Number> ownerSizeListener = (obs, o, n) -> positionDialog.run();
         javafx.beans.value.ChangeListener<Number> ownerPosListener = (obs, o, n) -> positionDialog.run();
         javafx.beans.value.ChangeListener<Boolean> iconifiedListener = (obs, oldv, newv) -> {
@@ -930,14 +906,12 @@ public class LobbyController {
             countdownTimer.stop();
         });
 
-        // Show and start countdown
         positionDialog.run();
         inviteDialog.show();
         countdownTimer.play();
     }
 
     public void showInviteRejected() {
-        // Create Riot-styled notification dialog attached to owner window
         Stage owner = (Stage) rootPane.getScene().getWindow();
         Stage notifyDialog = new Stage();
         notifyDialog.initOwner(owner);
@@ -945,7 +919,6 @@ public class LobbyController {
         notifyDialog.initStyle(javafx.stage.StageStyle.TRANSPARENT);
         notifyDialog.setResizable(false);
         
-        // Riot Games styled notification content
         VBox notifyContent = new VBox(18);
         notifyContent.setAlignment(Pos.CENTER);
         notifyContent.setPadding(new Insets(25, 35, 25, 35));
@@ -958,7 +931,6 @@ public class LobbyController {
             "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.9), 25, 0.9, 0, 8);"
         );
         
-        // Icon with Riot styling
         Label iconLabel = new Label("✖");
         iconLabel.setStyle(
             "-fx-font-size: 48px;" +
@@ -966,7 +938,6 @@ public class LobbyController {
             "-fx-effect: dropshadow(gaussian, #C33C3C, 15, 0.8, 0, 0);"
         );
         
-        // Title with Riot typography
         Label titleLabel = new Label("LỜI MỜI BỊ TỪ CHỐI");
         titleLabel.setStyle(
             "-fx-font-size: 20px;" +
@@ -975,7 +946,6 @@ public class LobbyController {
             "-fx-effect: dropshadow(gaussian, rgba(200,170,110,0.6), 8, 0.7, 0, 2);"
         );
         
-        // Message text
         Label messageLabel = new Label("Đối thủ đã từ chối lời mời của bạn");
         messageLabel.setStyle(
             "-fx-font-size: 14px;" +
@@ -983,7 +953,6 @@ public class LobbyController {
             "-fx-font-weight: 600;"
         );
         
-        // Riot-styled OK button
         Button okBtn = new Button("XÁC NHẬN");
         okBtn.setStyle(
             "-fx-font-size: 14px;" +
@@ -999,7 +968,6 @@ public class LobbyController {
             "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 10, 0.7, 0, 3);"
         );
         
-        // Auto-close after 3 seconds
         final Timeline autoClose = new Timeline(new KeyFrame(Duration.seconds(3), e -> {
             notifyDialog.close();
         }));
@@ -1012,7 +980,6 @@ public class LobbyController {
         
         notifyContent.getChildren().addAll(iconLabel, titleLabel, messageLabel, okBtn);
         
-        // Proportional sizing relative to owner (smaller than invite dialog)
         double fracW = 0.28; // 28% of owner width
         double fracH = 0.20; // 20% of owner height
         double dialogW = Math.max(280, owner.getWidth() * fracW);
@@ -1022,7 +989,6 @@ public class LobbyController {
         notifyScene.setFill(Color.TRANSPARENT);
         notifyDialog.setScene(notifyScene);
         
-        // Position and resize logic
         Runnable positionDialog = () -> {
             double newW = Math.max(280, owner.getWidth() * fracW);
             double newH = Math.max(180, owner.getHeight() * fracH);
@@ -1032,7 +998,6 @@ public class LobbyController {
             notifyDialog.setY(owner.getY() + (owner.getHeight() - newH) / 2);
         };
         
-        // Listeners for owner window changes
         javafx.beans.value.ChangeListener<Number> sizeListener = (obs, o, n) -> positionDialog.run();
         javafx.beans.value.ChangeListener<Number> posListener = (obs, o, n) -> positionDialog.run();
         javafx.beans.value.ChangeListener<Boolean> iconifiedListener = (obs, oldv, newv) -> {
@@ -1045,7 +1010,6 @@ public class LobbyController {
         owner.yProperty().addListener(posListener);
         owner.iconifiedProperty().addListener(iconifiedListener);
         
-        // Cleanup listeners when dialog closes
         notifyDialog.setOnHidden(evt -> {
             autoClose.stop();
             owner.widthProperty().removeListener(sizeListener);
@@ -1055,7 +1019,6 @@ public class LobbyController {
             owner.iconifiedProperty().removeListener(iconifiedListener);
         });
         
-        // Show dialog and start auto-close timer
         positionDialog.run();
         notifyDialog.show();
         autoClose.play();
@@ -1147,7 +1110,6 @@ public class LobbyController {
             controller.setNetworkClient(networkClient);
             System.out.println("[LobbyController] Controller set up");
             
-            // Set the controller reference in ClientApp if possible
             if (rootPane.getScene() != null && rootPane.getScene().getWindow() instanceof Stage) {
                 Stage ownerStage = (Stage) rootPane.getScene().getWindow();
                 Object userData = ownerStage.getUserData();
@@ -1162,9 +1124,7 @@ public class LobbyController {
             dialogStage.initOwner(rootPane.getScene().getWindow());
             dialogStage.setTitle("Lịch sử trận đấu");
             dialogStage.setResizable(true); // Cho phép resize
-            // Removed setAlwaysOnTop - dialog sẽ chỉ hiện trên owner, không đè lên apps khác
             
-            // Set min/max size để giữ layout đẹp
             dialogStage.setMinWidth(800);
             dialogStage.setMinHeight(600);
             dialogStage.setMaxWidth(1400);
@@ -1177,10 +1137,8 @@ public class LobbyController {
             
             System.out.println("[LobbyController] Dialog stage created, about to show...");
             
-            // Center dialog relative to owner window
             Stage owner = (Stage) rootPane.getScene().getWindow();
             
-            // Store initial sizes for scaling ratio
             final double initialOwnerWidth = owner.getWidth();
             final double initialOwnerHeight = owner.getHeight();
             final double initialDialogWidth = 1000;
@@ -1191,7 +1149,6 @@ public class LobbyController {
                 dialogStage.setY(owner.getY() + (owner.getHeight() - dialogStage.getHeight()) / 2);
             });
             
-            // Create listeners that can be removed later
             javafx.beans.value.ChangeListener<Number> xListener = (obs, oldVal, newVal) -> {
                 if (dialogStage.isShowing()) {
                     dialogStage.setX(newVal.doubleValue() + (owner.getWidth() - dialogStage.getWidth()) / 2);
@@ -1206,7 +1163,6 @@ public class LobbyController {
             
             javafx.beans.value.ChangeListener<Number> widthListener = (obs, oldVal, newVal) -> {
                 if (dialogStage.isShowing()) {
-                    // Scale dialog width proportionally to owner window resize
                     double scaleRatio = newVal.doubleValue() / initialOwnerWidth;
                     double newDialogWidth = Math.max(dialogStage.getMinWidth(), 
                                           Math.min(dialogStage.getMaxWidth(), 
@@ -1218,7 +1174,6 @@ public class LobbyController {
             
             javafx.beans.value.ChangeListener<Number> heightListener = (obs, oldVal, newVal) -> {
                 if (dialogStage.isShowing()) {
-                    // Scale dialog height proportionally to owner window resize
                     double scaleRatio = newVal.doubleValue() / initialOwnerHeight;
                     double newDialogHeight = Math.max(dialogStage.getMinHeight(), 
                                            Math.min(dialogStage.getMaxHeight(), 
@@ -1228,13 +1183,11 @@ public class LobbyController {
                 }
             };
             
-            // Add listeners
             owner.xProperty().addListener(xListener);
             owner.yProperty().addListener(yListener);
             owner.widthProperty().addListener(widthListener);
             owner.heightProperty().addListener(heightListener);
             
-            // Hide dialog when owner window is minimized or hidden
             javafx.beans.value.ChangeListener<Boolean> iconifiedListener = (obs, wasIconified, isIconified) -> {
                 if (isIconified) {
                     dialogStage.hide();
@@ -1245,16 +1198,13 @@ public class LobbyController {
             
             owner.iconifiedProperty().addListener(iconifiedListener);
             
-            // Clean up listeners and reference when dialog closes
             dialogStage.setOnHidden(e -> {
-                // Remove listeners to prevent memory leak
                 owner.xProperty().removeListener(xListener);
                 owner.yProperty().removeListener(yListener);
                 owner.widthProperty().removeListener(widthListener);
                 owner.heightProperty().removeListener(heightListener);
                 owner.iconifiedProperty().removeListener(iconifiedListener);
                 
-                // Clean up controller reference
                 if (rootPane.getScene() != null && rootPane.getScene().getWindow() instanceof Stage) {
                     Stage ownerStage = (Stage) rootPane.getScene().getWindow();
                     Object userData = ownerStage.getUserData();

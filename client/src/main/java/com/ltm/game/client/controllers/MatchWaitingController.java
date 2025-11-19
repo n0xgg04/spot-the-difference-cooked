@@ -42,23 +42,19 @@ public class MatchWaitingController {
     private boolean isReady = false; // Flag to track if both players are ready
 
     public void initialize() {
-        // Start spinner animations immediately
         startSpinnerAnimations();
         
-        // Do NOT start countdown or sound yet - wait for MATCH_READY
         countdownLabel.setText("...");
         statusLabel.setText("Đang chờ người chơi khác chấp nhận...");
     }
 
     private void startSpinnerAnimations() {
-        // Outer circle - rotate clockwise
         spinnerOuterRotation = new RotateTransition(javafx.util.Duration.seconds(4), spinnerOuter);
         spinnerOuterRotation.setByAngle(360);
         spinnerOuterRotation.setCycleCount(Animation.INDEFINITE);
         spinnerOuterRotation.setInterpolator(Interpolator.LINEAR);
         spinnerOuterRotation.play();
 
-        // Inner circle - rotate counter-clockwise
         spinnerInnerRotation = new RotateTransition(javafx.util.Duration.seconds(3), spinnerInner);
         spinnerInnerRotation.setByAngle(-360);
         spinnerInnerRotation.setCycleCount(Animation.INDEFINITE);
@@ -70,26 +66,22 @@ public class MatchWaitingController {
         remainingSeconds = 11; // Start from 11 to count: 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
         countdownLabel.setText("10"); // Display "10" initially
 
-        // Add pulse animation to countdown
         addPulseAnimation();
 
         countdownTimeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), e -> {
             remainingSeconds--;
             
-            // Display the countdown (10, 9, 8, ..., 1, 0)
             if (remainingSeconds > 0) {
                 countdownLabel.setText(String.valueOf(remainingSeconds - 1));
             } else {
                 countdownLabel.setText("0");
             }
 
-            // Add extra pulse on last 3 seconds (3, 2, 1)
             if (remainingSeconds <= 4 && remainingSeconds > 1) {
                 addUrgentPulse();
             }
 
             if (remainingSeconds <= 0) {
-                // Countdown finished - close dialog and enter game
                 countdownTimeline.stop();
                 System.out.println("[MatchWaiting] Countdown finished! Entering game...");
                 closeDialog();
@@ -111,7 +103,6 @@ public class MatchWaitingController {
     }
 
     private void addUrgentPulse() {
-        // Quick pulse for urgency
         ScaleTransition urgentPulse = new ScaleTransition(javafx.util.Duration.millis(200), countdownLabel);
         urgentPulse.setFromX(1.0);
         urgentPulse.setFromY(1.0);
@@ -129,7 +120,6 @@ public class MatchWaitingController {
     public void setAudioService(AudioService audioService) {
         this.audioService = audioService;
         
-        // Do NOT play countdown sound yet - wait for MATCH_READY (when both players accept)
     }
 
     public void setOpponentName(String name) {
@@ -146,10 +136,8 @@ public class MatchWaitingController {
     public void setOwnerStage(Stage ownerStage) {
         this.ownerStage = ownerStage;
         
-        // Center dialog when first shown
         Platform.runLater(() -> centerDialog());
         
-        // Position tracking - follow game window
         if (ownerStage != null) {
             Runnable centerDialog = this::centerDialog;
             
@@ -188,11 +176,9 @@ public class MatchWaitingController {
                 isReady = true;
                 statusLabel.setText("Cả hai đã sẵn sàng! Bắt đầu sau...");
                 
-                // NOW start countdown and sound
                 System.out.println("[MatchWaiting] Both players ready! Starting countdown...");
                 startCountdown();
                 
-                // Play countdown sound
                 if (audioService != null) {
                     System.out.println("[MatchWaiting] Playing countdown sound...");
                     audioService.playCountdownSound();
@@ -209,18 +195,15 @@ public class MatchWaitingController {
     }
 
     private void cleanup() {
-        // Stop countdown timer
         if (countdownTimeline != null) {
             countdownTimeline.stop();
         }
-        // Stop spinner animations
         if (spinnerOuterRotation != null) {
             spinnerOuterRotation.stop();
         }
         if (spinnerInnerRotation != null) {
             spinnerInnerRotation.stop();
         }
-        // Stop countdown sound
         if (audioService != null) {
             audioService.stopCountdownSound();
         }

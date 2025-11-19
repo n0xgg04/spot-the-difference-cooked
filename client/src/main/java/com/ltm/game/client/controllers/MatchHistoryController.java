@@ -33,7 +33,6 @@ public class MatchHistoryController {
     
     @FXML
     public void initialize() {
-        // Set column resize policy to fill all available space
         historyTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         
         setupTableColumns();
@@ -53,17 +52,14 @@ public class MatchHistoryController {
     }
     
     private void setupTableColumns() {
-        // Date column
         colDate.setCellValueFactory(data -> 
             new javafx.beans.property.SimpleStringProperty(data.getValue().getFormattedDate()));
         colDate.setStyle("-fx-alignment: CENTER;");
         
-        // Opponent column
         colOpponent.setCellValueFactory(data -> 
             new javafx.beans.property.SimpleStringProperty(data.getValue().getOpponent()));
         colOpponent.setStyle("-fx-alignment: CENTER-LEFT;");
         
-        // Result column with colored badges
         colResult.setCellFactory(col -> new TableCell<MatchHistoryRow, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -97,7 +93,6 @@ public class MatchHistoryController {
             }
         });
         
-        // Score column
         colScore.setCellValueFactory(data -> 
             new javafx.beans.property.SimpleStringProperty(data.getValue().getScore()));
         colScore.setStyle("-fx-alignment: CENTER;");
@@ -115,7 +110,6 @@ public class MatchHistoryController {
                 for (Map<String, Object> match : matches) {
                     String result = (String) match.get("result");
                     
-                    // Parse scores as integers (handle both Integer and Double from JSON)
                     Object myScoreObj = match.get("myScore");
                     Object opponentScoreObj = match.get("opponentScore");
                     
@@ -140,13 +134,11 @@ public class MatchHistoryController {
                     );
                     matchHistory.add(row);
                     
-                    // Count stats
                     if ("THẮNG".equals(result)) wins++;
                     else if ("THUA".equals(result)) losses++;
                     else if ("HÒA".equals(result)) draws++;
                 }
                 
-                // Update stats labels
                 int total = matchHistory.size();
                 totalMatchesLabel.setText(String.valueOf(total));
                 winsLabel.setText(String.valueOf(wins));

@@ -80,7 +80,6 @@ public class ClientApp extends Application {
     }
 
     private void handleLogout() {
-        // Send logout message to server
         if (networkClient != null) {
             networkClient.send(new Message(Protocol.AUTH_LOGOUT, null));
         }
@@ -182,7 +181,6 @@ public class ClientApp extends Application {
                 networkClient.send(new Message(Protocol.GAME_CLICK, Map.of("roomId", currentRoomId, "x", x, "y", y)));
             }
         }, username, audioService, () -> {
-            // Handle quit game
             if (currentRoomId != null) {
                 networkClient.send(new Message(Protocol.GAME_QUIT, Map.of("roomId", currentRoomId)));
             }
@@ -194,7 +192,6 @@ public class ClientApp extends Application {
     private void showResult(Map<?, ?> payload) {
         try {
             System.out.println("🎬 showResult() called");
-            // Stop all game audio when showing result
             audioService.stopAll();
             
             System.out.println("   Loading result.fxml...");
@@ -288,7 +285,6 @@ public class ClientApp extends Application {
                     Map<?, ?> p = (Map<?, ?>) msg.payload;
                     currentRoomId = String.valueOf(p.get("roomId"));
 
-                    // Ensure Match Found dialog is closed before showing game
                     if (lobbyController != null) {
                         lobbyController.ensureMatchDialogClosed();
                     }
@@ -322,7 +318,6 @@ public class ClientApp extends Application {
                         if (gameView != null) {
                             System.out.println("   Updating game view one last time...");
                             gameView.updateFromPayload((Map<?, ?>) msg.payload);
-                            // Cleanup game resources before showing result
                             System.out.println("   Cleaning up game view...");
                             gameView.cleanup();
                         }

@@ -40,13 +40,11 @@ public class UploaderApp extends Application {
     public void start(Stage stage) {
         stage.setTitle("⚔️ ADMIN PANEL - Spot The Difference");
         
-        // Legacy preview ImageViews (no longer shown; we now draw directly on the Canvas)
         var leftView = new ImageView();
         var rightView = new ImageView();
         leftView.setFitWidth(400); leftView.setFitHeight(400); leftView.setPreserveRatio(true);
         rightView.setFitWidth(400); rightView.setFitHeight(400); rightView.setPreserveRatio(true);
 
-        // LoL-styled buttons
         Button loadLeft = createLoLButton("📂  CHỌN ẢNH TRÁI", false);
         Button loadRight = createLoLButton("📂  CHỌN ẢNH PHẢI", false);
         Button clearPts = createLoLButton("🗑️  XÓA TẤT CẢ", false);
@@ -72,16 +70,13 @@ public class UploaderApp extends Application {
 
         overlay.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
             if (leftImg == null || rightImg == null) return;
-            // Accept clicks inside either 400x400 preview: left at (10,10) or right at (440,10)
             double cx = e.getX() - 10; double cy = e.getY() - 10; // left box local
             boolean inLeft = !(cx < 0 || cy < 0 || cx > 400 || cy > 400);
             double rx = e.getX() - 440; double ry = e.getY() - 10; // right box local
             boolean inRight = !(rx < 0 || ry < 0 || rx > 400 || ry > 400);
             if (!inLeft && !inRight) return;
-            // Use coordinates relative to whichever box was clicked (both images assumed same size)
             double localX = inLeft ? cx : rx;
             double localY = inLeft ? cy : ry;
-            // Normalize to original image pixels
             double ix = (localX / 400.0) * leftImg.getWidth();
             double iy = (localY / 400.0) * leftImg.getHeight();
             int rDisp = radiusSpinner.getValue();
@@ -96,7 +91,6 @@ public class UploaderApp extends Application {
             "-fx-background-color: linear-gradient(to bottom, #0A1428, #091428);"
         );
         
-        // Elegant LoL-styled Header with hextech pattern
         VBox header = new VBox(12);
         header.setPadding(new Insets(25, 30, 20, 30));
         header.setStyle(
@@ -133,7 +127,6 @@ public class UploaderApp extends Application {
         header.getChildren().addAll(titleLabel, subtitle, tip);
         root.setTop(header);
 
-        // Right panel - Elegant LoL styled control panel
         VBox tools = new VBox(18);
         tools.setPadding(new Insets(25, 20, 25, 20));
         tools.setStyle(
@@ -144,7 +137,6 @@ public class UploaderApp extends Application {
         );
         tools.setMinWidth(320);
         
-        // Name field section with icon
         HBox nameHeaderBox = new HBox(8);
         nameHeaderBox.setAlignment(Pos.CENTER_LEFT);
         Label nameIcon = new Label("📋");
@@ -158,7 +150,6 @@ public class UploaderApp extends Application {
         );
         nameHeaderBox.getChildren().addAll(nameIcon, nameLabel);
         
-        // Buttons section with icon
         HBox uploadHeaderBox = new HBox(8);
         uploadHeaderBox.setAlignment(Pos.CENTER_LEFT);
         Label uploadIcon = new Label("📤");
@@ -173,7 +164,6 @@ public class UploaderApp extends Application {
         uploadHeaderBox.getChildren().addAll(uploadIcon, uploadLabel);
         VBox uploadBox = new VBox(10, loadLeft, loadRight);
         
-        // Radius control section with icon
         HBox radiusHeaderBox = new HBox(8);
         radiusHeaderBox.setAlignment(Pos.CENTER_LEFT);
         Label radiusIcon = new Label("⚙️");
@@ -204,7 +194,6 @@ public class UploaderApp extends Application {
         HBox radiusBox = new HBox(12, radiusSpinner, clearPts);
         radiusBox.setAlignment(Pos.CENTER_LEFT);
         
-        // Points count label - more prominent
         pointsCountLabel = new Label("📍 ĐIỂM ĐÃ ĐÁNH DẤU: 0");
         pointsCountLabel.setStyle(
             "-fx-font-size: 14px;" +
@@ -226,7 +215,6 @@ public class UploaderApp extends Application {
             "-fx-padding: 5px 0;"
         );
         
-        // Status label - cleaner design
         status.setStyle(
             "-fx-font-size: 12px;" +
             "-fx-text-fill: #C8AA6E;" +
@@ -242,7 +230,6 @@ public class UploaderApp extends Application {
         status.setVisible(false); // Initially hidden
         status.setManaged(false); // Don't take up space when hidden
         
-        // Listener to show/hide status based on text
         status.textProperty().addListener((obs, oldText, newText) -> {
             boolean hasText = newText != null && !newText.trim().isEmpty();
             status.setVisible(hasText);
@@ -384,18 +371,15 @@ public class UploaderApp extends Application {
     private void redraw(ImageView leftView, ImageView rightView) {
         GraphicsContext g = overlay.getGraphicsContext2D();
         g.clearRect(0,0,overlay.getWidth(), overlay.getHeight());
-        // Draw elegant gradient background
         g.setFill(Color.web("#0A1428"));
         g.fillRect(0,0,overlay.getWidth(), overlay.getHeight());
         
-        // Draw subtle hextech pattern lines
         g.setStroke(Color.web("#1A2538", 0.3));
         g.setLineWidth(1);
         for (int i = 0; i < 450; i += 30) {
             g.strokeLine(0, i, 900, i);
         }
         
-        // Draw previews with elegant frames
         if (leftImg != null) {
             g.drawImage(leftImg, 15, 15, 390, 390);
         } else {
@@ -407,24 +391,20 @@ public class UploaderApp extends Application {
             drawPlaceholder(g, 445, 15, 390, 390, "➡️  ẢNH PHẢI");
         }
         
-        // Elegant LoL-styled frames with double border
         g.setStroke(Color.web("#D4AF37"));
         g.setLineWidth(3);
         g.strokeRect(15, 15, 390, 390);
         g.strokeRect(445, 15, 390, 390);
         
-        // Inner glow effect
         g.setStroke(Color.web("#785A28", 0.4));
         g.setLineWidth(1);
         g.strokeRect(13, 13, 394, 394);
         g.strokeRect(443, 13, 394, 394);
         
-        // Elegant footer with gradient
         g.setFill(Color.web("#0F1F35", 0.95));
         g.fillRect(15, 405, 390, 30);
         g.fillRect(445, 405, 390, 30);
         
-        // Footer border
         g.setStroke(Color.web("#D4AF37", 0.5));
         g.setLineWidth(1);
         g.strokeLine(15, 405, 405, 405);
@@ -438,21 +418,17 @@ public class UploaderApp extends Application {
         g.fillText(leftMeta.isEmpty()? "": leftMeta, 22, 425);
         g.fillText(rightMeta.isEmpty()? "": rightMeta, 452, 425);
         
-        // Draw difference points with glowing effect
         if (leftImg != null) {
             for (var p : points) {
-                // Convert image-space coordinates to preview space (390x390)
                 double dx = (p.x / leftImg.getWidth()) * 390.0;
                 double dy = (p.y / leftImg.getHeight()) * 390.0;
                 double rr = p.radius * (390.0 / leftImg.getWidth());
                 
-                // Outer glow
                 g.setStroke(Color.web("#D4AF37", 0.3));
                 g.setLineWidth(6);
                 g.strokeOval(15 + dx - rr, 15 + dy - rr, rr*2, rr*2);
                 g.strokeOval(445 + dx - rr, 15 + dy - rr, rr*2, rr*2);
                 
-                // Main circle
                 g.setStroke(Color.web("#D4AF37"));
                 g.setLineWidth(3);
                 g.strokeOval(15 + dx - rr, 15 + dy - rr, rr*2, rr*2);
@@ -462,34 +438,28 @@ public class UploaderApp extends Application {
     }
 
     private void drawPlaceholder(GraphicsContext g, double x, double y, double w, double h, String text) {
-        // Elegant dark gradient background
         g.setFill(Color.web("#0F1F35"));
         g.fillRect(x, y, w, h);
         
-        // Subtle inner shadow effect
         g.setFill(Color.web("#050A15", 0.3));
         g.fillRect(x, y, w, 50);
         
-        // Elegant dashed border
         g.setStroke(Color.web("#785A28", 0.8));
         g.setLineWidth(3);
         g.setLineDashes(15, 10);
         g.strokeRect(x+8, y+8, w-16, h-16);
         g.setLineDashes(0);
         
-        // Center icon - large emoji
         g.setFont(javafx.scene.text.Font.font("Segoe UI Emoji", 48));
         g.setFill(Color.web("#8B7355", 0.5));
         String icon = text.contains("TRÁI") ? "📷" : "📷";
         g.fillText(icon, x + w/2 - 24, y + h/2 - 20);
         
-        // Center text with better visibility
         g.setFont(javafx.scene.text.Font.font("Segoe UI", javafx.scene.text.FontWeight.BOLD, 18));
         g.setFill(Color.web("#D4AF37", 0.7));
         double textWidth = text.length() * 10;
         g.fillText(text, x + w/2 - textWidth/2, y + h/2 + 40);
         
-        // Helper text
         g.setFont(javafx.scene.text.Font.font("Segoe UI", 12));
         g.setFill(Color.web("#8B7355", 0.6));
         String hint = "Click nút bên dưới để chọn ảnh";
@@ -503,23 +473,18 @@ public class UploaderApp extends Application {
             String name = nameField.getText() == null ? "" : nameField.getText().trim();
             if (name.isEmpty()) name = "set-"+System.currentTimeMillis();
 
-            // Copy files into storage directory and save relative paths to DB
             java.util.Properties props = new java.util.Properties();
             try (var in = getClass().getClassLoader().getResourceAsStream("admin-config.properties")) {
                 if (in != null) props.load(in);
             }
             String storageDir = props.getProperty("storage.dir", "content/imagesets");
-            // Resolve to absolute path - need to go up to project root first
             File userDir = new File(System.getProperty("user.dir"));
             System.out.println("Current user.dir: " + userDir.getAbsolutePath());
             
-            // Check if we're in admin/ subdirectory
             File base;
             if (userDir.getName().equals("admin")) {
-                // Running from admin module, go up one level
                 base = new File(userDir.getParentFile(), storageDir);
             } else {
-                // Running from project root
                 base = new File(userDir, storageDir);
             }
             

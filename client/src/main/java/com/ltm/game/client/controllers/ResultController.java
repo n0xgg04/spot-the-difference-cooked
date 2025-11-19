@@ -83,23 +83,19 @@ public class ResultController {
         
         System.out.println("   My score: " + myScore + ", Opponent score: " + opponentScore);
         
-        // Ưu tiên kết quả từ server (xử lý cả trường hợp forfeit/quit)
         boolean isWinner;
         boolean isDraw;
         
         if (result != null && !result.equals("null")) {
-            // Server đã xác định winner (có thể do quit/disconnect)
             isWinner = result.equals(myUsername);
             isDraw = result.equals("DRAW");
         } else {
-            // Fallback: so sánh điểm (trường hợp server cũ hoặc không có result)
             isWinner = myScore > opponentScore;
             isDraw = myScore == opponentScore;
         }
         
         System.out.println("   Is winner: " + isWinner + ", Is draw: " + isDraw);
         
-        // Apply Riot Games styling based on result
         if (isDraw) {
             resultIcon.setText("⚖");
             resultTitle.setText("HÒA");
@@ -117,7 +113,6 @@ public class ResultController {
         yourNameLabel.setText(myUsername);
         yourScoreLabel.setText(String.valueOf(myScore));
         
-        // Riot color scheme: Bright gold for winner, Bright red for loser, Light gray for draw
         String scoreColor = isWinner ? "#F0C75E" : (isDraw ? "#D4C5AA" : "#E84A4F");
         yourScoreLabel.setStyle(yourScoreLabel.getStyle() + "-fx-text-fill: " + scoreColor + ";");
         
@@ -131,7 +126,6 @@ public class ResultController {
         if (reason.equals("all-found")) {
             reasonText = "✓ TẤT CẢ ĐIỂM KHÁC BIỆT ĐÃ ĐƯỢC TÌM THẤY";
         } else if (reason.endsWith("-quit")) {
-            // Hiển thị tên người quit thay vì chỉ nói "đối thủ"
             String quitter = reason.substring(0, reason.indexOf("-quit"));
             if (quitter.equals(myUsername)) {
                 reasonText = "» Bạn đã rời khỏi trận đấu";
@@ -163,7 +157,6 @@ public class ResultController {
     
     @FXML
     private void handleContinue() {
-        // Simply go back to lobby
         if (onBackToLobby != null) {
             onBackToLobby.accept(null);
         }

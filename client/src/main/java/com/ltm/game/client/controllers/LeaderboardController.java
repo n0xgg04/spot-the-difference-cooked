@@ -65,7 +65,6 @@ public class LeaderboardController {
             entryRow.setPadding(new Insets(16, 24, 16, 24));
             entryRow.setMaxWidth(1000);
             
-            // Riot Games color scheme
             String bgGradient;
             String borderColor;
             if (rank == 1) {
@@ -91,7 +90,6 @@ public class LeaderboardController {
                 "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 12, 0.6, 0, 4);"
             );
             
-            // Rank indicator
             Label rankLabel = new Label();
             rankLabel.setMinWidth(45);
             rankLabel.setAlignment(Pos.CENTER);
@@ -126,7 +124,6 @@ public class LeaderboardController {
                 );
             }
             
-            // Player name
             Label nameLabel = new Label(playerName);
             nameLabel.setStyle(
                 "-fx-font-size: 18px;" +
@@ -139,7 +136,6 @@ public class LeaderboardController {
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
             
-            // Points display
             VBox pointsBox = new VBox(2);
             pointsBox.setAlignment(Pos.CENTER);
             
@@ -160,7 +156,6 @@ public class LeaderboardController {
             
             pointsBox.getChildren().addAll(pointsLabel, pointsTextLabel);
             
-            // Wins display
             VBox winsBox = new VBox(2);
             winsBox.setAlignment(Pos.CENTER);
             winsBox.setPadding(new Insets(0, 0, 0, 15));

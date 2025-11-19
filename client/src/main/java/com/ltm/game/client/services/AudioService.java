@@ -29,7 +29,6 @@ public class AudioService {
             }
             backgroundMusic.play();
         } catch (Exception e) {
-            // Error loading background music
         }
     }
 
@@ -46,7 +45,6 @@ public class AudioService {
             }
             backgroundMusic.play();
         } catch (Exception e) {
-            // Error loading lobby music
         }
     }
 
@@ -69,7 +67,6 @@ public class AudioService {
             }
             gameMusic.play();
         } catch (Exception e) {
-            // Error loading game music
         }
     }
 
@@ -125,7 +122,6 @@ public class AudioService {
             celebrationSound.setVolume(0.2);
             celebrationSound.play();
         } catch (Exception e) {
-            // Error playing celebration sound
         }
     }
 
